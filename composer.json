@@ -1,0 +1,31 @@
+{
+    "name": "chanthoeun/filament-document-builder",
+    "description": "A Filament plugin for building dynamic documents and exporting to PDF.",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Chanthoeun",
+            "email": "chanthoeun@example.com"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "illuminate/support": "^10.0|^11.0|^12.0|^13.0",
+        "illuminate/contracts": "^10.0|^11.0|^12.0|^13.0",
+        "filament/filament": "^4.0|^5.0",
+        "spatie/laravel-pdf": "^1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Chanthoeun\\FilamentDocumentBuilder\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Chanthoeun\\FilamentDocumentBuilder\\FilamentDocumentBuilderServiceProvider"
+            ]
+        }
+    }
+}
