@@ -4,69 +4,51 @@ namespace Chanthoeun\FilamentDocumentBuilder\Resources;
 
 use Chanthoeun\FilamentDocumentBuilder\Models\DocumentTemplate;
 use Filament\Forms;
-use Filament\Forms\Form;
+use Filament\Schemas\Schema;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Filament\Actions;
 use Chanthoeun\FilamentDocumentBuilder\Resources\DocumentTemplateResource\Pages;
 
 class DocumentTemplateResource extends Resource
 {
     protected static ?string $model = DocumentTemplate::class;
-    protected static ?string $navigationIcon = 'heroicon-o-document-duplicate';
-    protected static ?string $navigationGroup = 'Document Builder';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-document-duplicate';
+    protected static string|\UnitEnum|null $navigationGroup = 'Document Builder';
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
+        return $schema
             ->schema([
-                Forms\Components\Section::make('Template Details')->schema([
-                    Forms\Components\TextInput::make('name')
-                        ->required()
-                        ->maxLength(255),
-                    Forms\Components\TextInput::make('type')
-                        ->placeholder('e.g. invoice, certificate, receipt')
-                        ->maxLength(255),
-                    Forms\Components\KeyValue::make('page_settings')
-                        ->label('Page Settings')
-                        ->keyLabel('Setting')
-                        ->valueLabel('Value')
-                        ->default([
-                            'format' => 'a4',
-                            'orientation' => 'portrait',
-                        ]),
-                ])->columnSpan(1),
-                
-                Forms\Components\Section::make('Document Designer')->schema([
-                    Forms\Components\Builder::make('content')
-                        ->blocks([
-                            Forms\Components\Builder\Block::make('header')
-                                ->schema([
-                                    Forms\Components\TextInput::make('title')->required(),
-                                    Forms\Components\TextInput::make('subtitle'),
-                                    Forms\Components\FileUpload::make('logo')->image(),
-                                ]),
-                            Forms\Components\Builder\Block::make('text')
-                                ->schema([
-                                    Forms\Components\RichEditor::make('content')->required(),
-                                ]),
-                            Forms\Components\Builder\Block::make('table')
-                                ->schema([
-                                    Forms\Components\TextInput::make('array_variable')
-                                        ->label('Array Variable Name')
-                                        ->placeholder('e.g. items')
-                                        ->required(),
-                                    Forms\Components\Repeater::make('columns')
-                                        ->schema([
-                                            Forms\Components\TextInput::make('header')->required(),
-                                            Forms\Components\TextInput::make('variable')->required(),
-                                        ])
-                                ]),
-                        ])
-                        ->collapsible(),
-                ])->columnSpan(2),
+                \Filament\Schemas\Components\Tabs::make('Template Builder')->tabs([
+                    \Filament\Schemas\Components\Tabs\Tab::make('Template Details')->schema([
+                        Forms\Components\TextInput::make('name')
+                            ->required()
+                            ->maxLength(255),
+                        Forms\Components\TextInput::make('type')
+                            ->placeholder('e.g. invoice, certificate, receipt')
+                            ->maxLength(255),
+                        Forms\Components\KeyValue::make('page_settings')
+                            ->label('Page Settings')
+                            ->keyLabel('Setting')
+                            ->valueLabel('Value')
+                            ->default([
+                                'format' => 'a4',
+                                'orientation' => 'portrait',
+                            ]),
+                    ]),
+                    \Filament\Schemas\Components\Tabs\Tab::make('Document Designer')->schema([
+                        \AmidEsfahani\FilamentTinyEditor\TinyEditor::make('content')
+                            ->required()
+                            ->columnSpanFull()
+                            ->fileAttachmentsDisk('public')
+                            ->fileAttachmentsDirectory('document-templates')
+                            ->profile('full'),
+                    ]),
+                ])->columnSpanFull(),
             ])
-            ->columns(3);
+            ->columns(1);
     }
 
     public static function table(Table $table): Table
@@ -79,12 +61,12 @@ class DocumentTemplateResource extends Resource
             ])
             ->filters([])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Actions\EditAction::make(),
+                Actions\DeleteAction::make(),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                Actions\BulkActionGroup::make([
+                    Actions\DeleteBulkAction::make(),
                 ]),
             ]);
     }

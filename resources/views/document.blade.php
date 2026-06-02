@@ -40,7 +40,7 @@
 </head>
 <body>
     <div class="document-container">
-        {!! $blocksHtml !!}
+        {!! $htmlContent !!}
     </div>
 </body>
 </html>
