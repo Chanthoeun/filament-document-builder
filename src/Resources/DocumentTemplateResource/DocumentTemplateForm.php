@@ -135,52 +135,52 @@ class DocumentTemplateForm
                                     'toolbar' => 'undo redo removeformat | fontfamily fontsize fontsizeinput font_size_formats styles | bold italic underline | rtl ltr | alignjustify alignright aligncenter alignleft | numlist bullist outdent indent accordion | forecolor backcolor | blockquote table toc hr | image link anchor media codesample emoticons template insert_variable | visualblocks print preview wordcount fullscreen help',
                                     'templates' => [
                                         [
-                                            'title' => '2 Column Layout',
+                                            'title' => 'Layout - 2 Columns',
                                             'description' => 'A table with 2 equal columns',
                                             'content' => '<table style="width: 100%; border-collapse: collapse; border: none;"><tbody><tr><td style="width: 50%; padding: 5px; vertical-align: top; border: none;">Column 1</td><td style="width: 50%; padding: 5px; vertical-align: top; border: none;">Column 2</td></tr></tbody></table><p><br></p>'
                                         ],
                                         [
-                                            'title' => '3 Column Layout',
+                                            'title' => 'Layout - 3 Columns',
                                             'description' => 'A table with 3 equal columns',
                                             'content' => '<table style="width: 100%; border-collapse: collapse; border: none;"><tbody><tr><td style="width: 33.33%; padding: 5px; vertical-align: top; border: none;">Column 1</td><td style="width: 33.33%; padding: 5px; vertical-align: top; border: none;">Column 2</td><td style="width: 33.33%; padding: 5px; vertical-align: top; border: none;">Column 3</td></tr></tbody></table><p><br></p>'
                                         ],
                                         [
-                                            'title' => '4 Column Layout',
+                                            'title' => 'Layout - 4 Columns',
                                             'description' => 'A table with 4 equal columns',
                                             'content' => '<table style="width: 100%; border-collapse: collapse; border: none;"><tbody><tr><td style="width: 25%; padding: 5px; vertical-align: top; border: none;">Column 1</td><td style="width: 25%; padding: 5px; vertical-align: top; border: none;">Column 2</td><td style="width: 25%; padding: 5px; vertical-align: top; border: none;">Column 3</td><td style="width: 25%; padding: 5px; vertical-align: top; border: none;">Column 4</td></tr></tbody></table><p><br></p>'
                                         ],
                                         [
-                                            'title' => 'Circle Shape (Logo)',
+                                            'title' => 'Shape - Circle (Logo)',
                                             'description' => 'A circular shape for logos or avatars',
                                             'content' => '<div style="display: inline-block; width: 80px; height: 80px; border: 1px solid #000; border-radius: 50%; text-align: center;">LOGO</div>'
                                         ],
                                         [
-                                            'title' => 'Square Box',
+                                            'title' => 'Shape - Square Box',
                                             'description' => 'A simple square box',
                                             'content' => '<div style="display: inline-block; width: 80px; height: 80px; border: 1px solid #000; text-align: center;">BOX</div>'
                                         ],
                                         [
-                                            'title' => 'Rectangle Photo Box (4x6)',
+                                            'title' => 'Shape - Rectangle Photo Box (4x6)',
                                             'description' => '4x6 Photo Box for Khmer forms',
                                             'content' => '<div style="display: inline-block; width: 80px; height: 100px; border: 1px solid #000; text-align: center;">រូបថត<br>៤x៦</div>'
                                         ],
                                         [
-                                            'title' => 'Checkbox (Small Square)',
+                                            'title' => 'Element - Checkbox (Small Square)',
                                             'description' => 'Small square for checkboxes',
                                             'content' => '<div style="display: inline-block; width: 16px; height: 16px; border: 1px solid #000; text-align: center;"></div>'
                                         ],
                                         [
-                                            'title' => 'Rounded Rectangle',
+                                            'title' => 'Shape - Rounded Rectangle',
                                             'description' => 'A rectangle with rounded corners',
                                             'content' => '<div style="display: inline-block; width: 120px; height: 60px; border: 1px solid #000; border-radius: 10px; text-align: center;">TEXT</div>'
                                         ],
                                         [
-                                            'title' => 'Oval',
+                                            'title' => 'Shape - Oval',
                                             'description' => 'An oval shape',
                                             'content' => '<div style="display: inline-block; width: 120px; height: 60px; border: 1px solid #000; border-radius: 50%; text-align: center;">OVAL</div>'
                                         ],
                                         [
-                                            'title' => 'Signature Area',
+                                            'title' => 'Element - Signature Area',
                                             'description' => 'A line for signatures',
                                             'content' => '<div style="display: inline-block; width: 200px; text-align: center; border-bottom: 1px solid #000; padding-bottom: 5px; margin-top: 40px;">ហត្ថលេខា / Signature</div>'
                                         ]
