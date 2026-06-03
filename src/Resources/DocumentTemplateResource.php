@@ -44,7 +44,28 @@ class DocumentTemplateResource extends Resource
                             ->columnSpanFull()
                             ->fileAttachmentsDisk('public')
                             ->fileAttachmentsDirectory('document-templates')
-                            ->profile('full'),
+                            ->profile('full')
+                            ->setCustomConfigs([
+                                'plugins' => 'accordion autoresize codesample directionality advlist autolink link image lists charmap preview anchor pagebreak searchreplace wordcount visualblocks visualchars code fullscreen insertdatetime media table emoticons help template',
+                                'toolbar' => 'undo redo removeformat | fontfamily fontsize fontsizeinput font_size_formats styles | bold italic underline | rtl ltr | alignjustify alignright aligncenter alignleft | numlist bullist outdent indent accordion | forecolor backcolor | blockquote table toc hr | image link anchor media codesample emoticons template | visualblocks print preview wordcount fullscreen help',
+                                'templates' => [
+                                    [
+                                        'title' => 'Circle Shape (Logo)',
+                                        'description' => 'A circular shape for logos or avatars',
+                                        'content' => '<div style="display: inline-block; width: 80px; height: 80px; border: 1px solid #000; border-radius: 50%; text-align: center;">LOGO</div>'
+                                    ],
+                                    [
+                                        'title' => 'Square Box',
+                                        'description' => 'A simple square box',
+                                        'content' => '<div style="display: inline-block; width: 80px; height: 80px; border: 1px solid #000; text-align: center;">BOX</div>'
+                                    ],
+                                    [
+                                        'title' => 'Rectangle Photo Box (4x6)',
+                                        'description' => '4x6 Photo Box for Khmer forms',
+                                        'content' => '<div style="display: inline-block; width: 80px; height: 100px; border: 1px solid #000; text-align: center;">រូបថត<br>៤x៦</div>'
+                                    ]
+                                ]
+                            ]),
                     ]),
                 ])->columnSpanFull(),
             ])
