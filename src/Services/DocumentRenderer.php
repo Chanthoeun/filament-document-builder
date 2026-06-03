@@ -9,6 +9,49 @@ use Illuminate\Support\Str;
 class DocumentRenderer
 {
     /**
+     * Replaces loop blocks like {{#foreach items as item}} ... {{/foreach}}
+     */
+    protected function replaceLoops(?string $content, array|object $data): ?string
+    {
+        if (empty($content)) {
+            return $content;
+        }
+
+        return preg_replace_callback(
+            '/{{.*?#foreach\s+(.*?)\s+as\s+(.*?).*?}}(.*?){{.*?\/foreach.*?}}/is',
+            function ($matches) use ($data) {
+                $arrayPath = trim(strip_tags($matches[1]));
+                $arrayPath = html_entity_decode(str_replace('&nbsp;', '', $arrayPath));
+                
+                $itemName = trim(strip_tags($matches[2]));
+                $itemName = html_entity_decode(str_replace('&nbsp;', '', $itemName));
+                
+                $blockContent = $matches[3];
+
+                $items = data_get($data, $arrayPath);
+                
+                if (!is_iterable($items)) {
+                    return '';
+                }
+
+                $result = '';
+                
+                foreach ($items as $item) {
+                    $loopData = [
+                        '_parent' => $data,
+                        $itemName => $item,
+                    ];
+                    
+                    $result .= $this->replaceVariables($blockContent, $loopData);
+                }
+
+                return $result;
+            },
+            $content
+        );
+    }
+
+    /**
      * Replaces string variables like {{ variable.name }} with actual data.
      */
     protected function replaceVariables(?string $content, array|object $data): ?string
@@ -25,9 +68,22 @@ class DocumentRenderer
             $key = html_entity_decode(str_replace('&nbsp;', '', $key));
             $key = trim($key);
             
+            // Skip loop opening/closing tags that might have been processed or are broken
+            if (str_starts_with($key, '#foreach') || str_starts_with($key, '/foreach')) {
+                return $matches[0];
+            }
+            
             $value = data_get($data, $key);
+            
+            // Fallback for loop inner blocks accessing parent variables
+            if ($value === null && is_array($data) && array_key_exists('_parent', $data)) {
+                $value = data_get($data['_parent'], $key);
+            }
+
             if ($value === null || $value === '') {
-                $dataType = is_object($data) ? get_class($data) : gettype($data);
+                // If it's a loop context, check if we're debugging the parent or the item
+                $debugData = (is_array($data) && array_key_exists('_parent', $data)) ? $data['_parent'] : $data;
+                $dataType = is_object($debugData) ? get_class($debugData) : gettype($debugData);
                 return '[NOT FOUND: ' . $key . ' IN ' . $dataType . ']';
             }
             return $value;
@@ -38,7 +94,10 @@ class DocumentRenderer
     {
         $htmlContent = $template->content ?? '';
         
-        // Replace variables in the entire HTML content
+        // First replace any loops in the HTML content
+        $htmlContent = $this->replaceLoops($htmlContent, $data);
+
+        // Then replace variables in the remaining HTML content
         $htmlContent = $this->replaceVariables($htmlContent, $data);
 
         // mPDF compatibility fixes: convert Flexbox to inline-block
