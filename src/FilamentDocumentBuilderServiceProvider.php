@@ -15,7 +15,8 @@ class FilamentDocumentBuilderServiceProvider extends PackageServiceProvider
             ->name('filament-document-builder')
             ->hasConfigFile()
             ->hasViews()
-            ->hasMigration('create_document_templates_table');
+            ->hasMigration('create_document_templates_table')
+            ->hasMigration('add_model_class_to_document_templates_table');
     }
 
     public function packageBooted(): void

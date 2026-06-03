@@ -9,6 +9,7 @@ class DocumentTemplate extends Model
     protected $fillable = [
         'name',
         'type',
+        'model_class',
         'content',
         'page_settings',
     ];

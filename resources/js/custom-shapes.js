@@ -30,5 +30,34 @@ if (typeof tinymce !== 'undefined') {
                 callback(items);
             }
         });
+
+        editor.ui.registry.addMenuButton('insert_variable', {
+            text: 'Insert Variable',
+            icon: 'sourcecode',
+            fetch: function (callback) {
+                var vars = editor.getParam('document_variables', []);
+                var items = [];
+                
+                if (vars.length === 0) {
+                    items.push({
+                        type: 'menuitem',
+                        text: 'No model selected',
+                        disabled: true,
+                        onAction: function () {}
+                    });
+                } else {
+                    vars.forEach(function(v) {
+                        items.push({
+                            type: 'menuitem',
+                            text: '{{ ' + v + ' }}',
+                            onAction: function () {
+                                editor.insertContent('{{ ' + v + ' }}');
+                            }
+                        });
+                    });
+                }
+                callback(items);
+            }
+        });
     });
 }
