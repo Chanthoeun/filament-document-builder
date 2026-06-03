@@ -64,7 +64,7 @@ class DocumentTemplateResource extends Resource
                             ->fileAttachmentsDisk('public')
                             ->fileAttachmentsDirectory('document-templates')
                             ->profile('full')
-                            ->setCustomConfigs(function (\Filament\Forms\Get $get) {
+                            ->setCustomConfigs(function (\Filament\Schemas\Components\Utilities\Get $get) {
                                 $vars = [];
                                 $modelClass = $get('model_class');
                                 if ($modelClass && class_exists($modelClass)) {
