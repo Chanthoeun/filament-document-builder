@@ -19,7 +19,7 @@ class DocumentTemplateTable
             ])
             ->filters([])
             ->actions([
-                Tables\Actions\Action::make('preview_pdf')
+                FilamentActions\Action::make('preview_pdf')
                     ->label('Preview PDF')
                     ->icon('heroicon-o-eye')
                     ->color('info')
@@ -55,12 +55,12 @@ class DocumentTemplateTable
                             echo $pdf->output();
                         }, 'preview.pdf');
                     }),
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                FilamentActions\EditAction::make(),
+                FilamentActions\DeleteAction::make(),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                FilamentActions\BulkActionGroup::make([
+                    FilamentActions\DeleteBulkAction::make(),
                 ]),
             ]);
     }
