@@ -96,7 +96,7 @@ class DocumentTemplateResource extends Resource
                                 ]
                             ]),
                     ]),
-                ])->columnSpanFull(),
+                ])->columnSpanFull()->skippable(),
             ])
             ->columns(1);
     }
