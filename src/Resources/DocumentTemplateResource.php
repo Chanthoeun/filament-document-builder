@@ -75,7 +75,7 @@ class DocumentTemplateResource extends Resource
 
                                 return [
                                     'document_variables' => $vars,
-                                    'plugins' => 'accordion autoresize codesample directionality advlist autolink link image lists charmap preview anchor pagebreak searchreplace wordcount visualblocks visualchars code fullscreen insertdatetime media table emoticons help template',
+                                    'plugins' => 'custom_shapes accordion autoresize codesample directionality advlist autolink link image lists charmap preview anchor pagebreak searchreplace wordcount visualblocks visualchars code fullscreen insertdatetime media table emoticons help template',
                                     'toolbar' => 'undo redo removeformat | fontfamily fontsize fontsizeinput font_size_formats styles | bold italic underline | rtl ltr | alignjustify alignright aligncenter alignleft | numlist bullist outdent indent accordion | forecolor backcolor | blockquote table toc hr | image link anchor media codesample emoticons template insert_variable | visualblocks print preview wordcount fullscreen help',
                                     'templates' => [
                                         [
@@ -141,6 +141,27 @@ class DocumentTemplateResource extends Resource
             ])
             ->filters([])
             ->actions([
+                Actions\Action::make('preview_pdf')
+                    ->label('Preview PDF')
+                    ->icon('heroicon-o-eye')
+                    ->color('info')
+                    ->action(function (Models\DocumentTemplate $record) {
+                        $data = [];
+                        if ($record->model_class && class_exists($record->model_class)) {
+                            // Try to get a sample record for preview
+                            $sampleRecord = $record->model_class::first();
+                            if ($sampleRecord) {
+                                $data = $sampleRecord;
+                            }
+                        }
+
+                        $renderer = app(\Chanthoeun\FilamentDocumentBuilder\Services\DocumentRenderer::class);
+                        $pdf = $renderer->render($record, $data);
+
+                        return response()->streamDownload(function () use ($pdf) {
+                            echo $pdf->output();
+                        }, 'preview.pdf');
+                    }),
                 Actions\EditAction::make(),
                 Actions\DeleteAction::make(),
             ])

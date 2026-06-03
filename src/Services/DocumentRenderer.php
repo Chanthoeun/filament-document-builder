@@ -11,7 +11,7 @@ class DocumentRenderer
     /**
      * Replaces string variables like {{ variable.name }} with actual data.
      */
-    protected function replaceVariables(?string $content, array $data): ?string
+    protected function replaceVariables(?string $content, array|object $data): ?string
     {
         if (empty($content)) {
             return $content;
@@ -29,7 +29,7 @@ class DocumentRenderer
         }, $content);
     }
 
-    public function render(DocumentTemplate $template, array $data = [])
+    public function render(DocumentTemplate $template, array|object $data = [])
     {
         $htmlContent = $template->content ?? '';
         

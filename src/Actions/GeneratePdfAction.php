@@ -36,7 +36,7 @@ class GeneratePdfAction extends Action
                 return; // Or throw exception / show notification
             }
 
-            $data = $this->dataResolver ? call_user_func($this->dataResolver, $record) : $record->toArray();
+            $data = $this->dataResolver ? call_user_func($this->dataResolver, $record) : $record;
 
             $renderer = app(DocumentRenderer::class);
             $pdf = $renderer->render($template, $data);
