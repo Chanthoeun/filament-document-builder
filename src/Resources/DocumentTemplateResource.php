@@ -141,6 +141,53 @@ class DocumentTemplateResource extends Resource
             ])
             ->filters([])
             ->actions([
+                Actions\Action::make('test_pdf')
+                    ->label('Test PDF')
+                    ->icon('heroicon-o-beaker')
+                    ->color('success')
+                    ->form([
+                        \Filament\Forms\Components\TextInput::make('record_id')
+                            ->label('Enter Record ID to Test (e.g. 1)')
+                            ->required()
+                            ->numeric(),
+                    ])
+                    ->action(function (Models\DocumentTemplate $record, array $data) {
+                        if (empty($record->model_class)) {
+                            \Filament\Notifications\Notification::make()
+                                ->title('No Database Model Selected')
+                                ->body('You must select a Database Model in the Template Details and click Save before you can test.')
+                                ->warning()
+                                ->send();
+                            return;
+                        }
+
+                        if (!class_exists($record->model_class)) {
+                            \Filament\Notifications\Notification::make()
+                                ->title('Invalid Model')
+                                ->body("The model {$record->model_class} does not exist.")
+                                ->danger()
+                                ->send();
+                            return;
+                        }
+
+                        $sampleRecord = $record->model_class::find($data['record_id']);
+                        
+                        if (!$sampleRecord) {
+                            \Filament\Notifications\Notification::make()
+                                ->title('Record Not Found')
+                                ->body("No {$record->model_class} found with ID {$data['record_id']}.")
+                                ->danger()
+                                ->send();
+                            return;
+                        }
+
+                        $renderer = app(\Chanthoeun\FilamentDocumentBuilder\Services\DocumentRenderer::class);
+                        $pdf = $renderer->render($record, $sampleRecord);
+
+                        return response()->streamDownload(function () use ($pdf) {
+                            echo $pdf->output();
+                        }, 'test_document_' . $data['record_id'] . '.pdf');
+                    }),
                 Actions\Action::make('preview_pdf')
                     ->label('Preview PDF')
                     ->icon('heroicon-o-eye')
