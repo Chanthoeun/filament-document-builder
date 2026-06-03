@@ -121,22 +121,30 @@ class DocumentTemplateForm
                                     if ($modelClass === \Chanthoeun\FilamentCustomForms\Models\CustomFormEntry::class && $type && str_starts_with($type, 'custom_form_')) {
                                         $formId = str_replace('custom_form_', '', $type);
                                         $customForm = \Chanthoeun\FilamentCustomForms\Models\CustomForm::find($formId);
-                                        if ($customForm && is_array($customForm->schema)) {
+                                        if ($customForm) {
                                             $customFields = [];
-                                            $extractFields = function($schema) use (&$extractFields, &$customFields) {
-                                                foreach ($schema as $block) {
-                                                    $bType = $block['type'] ?? null;
-                                                    $data = $block['data'] ?? [];
-                                                    if (in_array($bType, ['section', 'grid', 'fieldset', 'repeater'])) {
-                                                        if (!empty($data['schema'])) {
-                                                            $extractFields($data['schema']);
-                                                        }
-                                                    } elseif (!empty($data['name'])) {
-                                                        $customFields[] = 'data.' . $data['name'];
+                                            if ($customForm->fields()->count() > 0) {
+                                                foreach ($customForm->fields as $field) {
+                                                    if (!in_array($field->type, ['section', 'grid', 'fieldset', 'wizard']) && !empty($field->name)) {
+                                                        $customFields[] = 'data.' . $field->name;
                                                     }
                                                 }
-                                            };
-                                            $extractFields($customForm->schema);
+                                            } elseif (is_array($customForm->schema)) {
+                                                $extractFields = function($schema) use (&$extractFields, &$customFields) {
+                                                    foreach ($schema as $block) {
+                                                        $bType = $block['type'] ?? null;
+                                                        $data = $block['data'] ?? [];
+                                                        if (in_array($bType, ['section', 'grid', 'fieldset', 'repeater'])) {
+                                                            if (!empty($data['schema'])) {
+                                                                $extractFields($data['schema']);
+                                                            }
+                                                        } elseif (!empty($data['name'])) {
+                                                            $customFields[] = 'data.' . $data['name'];
+                                                        }
+                                                    }
+                                                };
+                                                $extractFields($customForm->schema);
+                                            }
                                             $vars = array_merge($vars, $customFields);
                                         }
                                     }
