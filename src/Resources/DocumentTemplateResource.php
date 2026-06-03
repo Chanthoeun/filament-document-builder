@@ -151,7 +151,7 @@ class DocumentTemplateResource extends Resource
                             ->required()
                             ->numeric(),
                     ])
-                    ->action(function (Models\DocumentTemplate $record, array $data) {
+                    ->action(function (DocumentTemplate $record, array $data) {
                         if (empty($record->model_class)) {
                             \Filament\Notifications\Notification::make()
                                 ->title('No Database Model Selected')
@@ -192,7 +192,7 @@ class DocumentTemplateResource extends Resource
                     ->label('Preview PDF')
                     ->icon('heroicon-o-eye')
                     ->color('info')
-                    ->action(function (Models\DocumentTemplate $record) {
+                    ->action(function (DocumentTemplate $record) {
                         if (empty($record->model_class)) {
                             \Filament\Notifications\Notification::make()
                                 ->title('No Database Model Selected')
