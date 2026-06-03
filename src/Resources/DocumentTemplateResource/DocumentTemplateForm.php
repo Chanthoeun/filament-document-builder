@@ -13,7 +13,7 @@ class DocumentTemplateForm
             ->schema([
                 \Filament\Schemas\Components\Wizard::make([
                     \Filament\Schemas\Components\Wizard\Step::make(__('filament-document-builder::document-builder.labels.template_details'))->schema([
-                        Forms\Components\Grid::make(3)->schema([
+                        \Filament\Schemas\Components\Grid::make(3)->schema([
                             Forms\Components\TextInput::make('name')
                                 ->label(__('filament-document-builder::document-builder.labels.template_name'))
                                 ->required()
