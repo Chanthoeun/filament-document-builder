@@ -105,7 +105,8 @@ class DocumentTemplateForm
                     \Filament\Schemas\Components\Wizard\Step::make(__('filament-document-builder::document-builder.labels.document_designer'))->schema([
                         \AmidEsfahani\FilamentTinyEditor\TinyEditor::make('content')
                             ->label(__('filament-document-builder::document-builder.labels.document_designer'))
-                            ->required()
+                            ->hiddenLabel()
+                            ->required(false)
                             ->columnSpanFull()
                             ->fileAttachmentsDisk('public')
                             ->fileAttachmentsDirectory('document-templates')
