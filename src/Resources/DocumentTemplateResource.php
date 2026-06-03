@@ -63,12 +63,36 @@ class DocumentTemplateResource extends Resource
                                         'title' => 'Rectangle Photo Box (4x6)',
                                         'description' => '4x6 Photo Box for Khmer forms',
                                         'content' => '<div style="display: inline-block; width: 80px; height: 100px; border: 1px solid #000; text-align: center;">រូបថត<br>៤x៦</div>'
+                                    ],
+                                    [
+                                        'title' => 'Checkbox (Small Square)',
+                                        'description' => 'Small square for checkboxes',
+                                        'content' => '<div style="display: inline-block; width: 16px; height: 16px; border: 1px solid #000; text-align: center;"></div>'
+                                    ],
+                                    [
+                                        'title' => 'Rounded Rectangle',
+                                        'description' => 'A rectangle with rounded corners',
+                                        'content' => '<div style="display: inline-block; width: 120px; height: 60px; border: 1px solid #000; border-radius: 10px; text-align: center;">TEXT</div>'
+                                    ],
+                                    [
+                                        'title' => 'Oval',
+                                        'description' => 'An oval shape',
+                                        'content' => '<div style="display: inline-block; width: 120px; height: 60px; border: 1px solid #000; border-radius: 50%; text-align: center;">OVAL</div>'
+                                    ],
+                                    [
+                                        'title' => 'Signature Area',
+                                        'description' => 'A line for signatures',
+                                        'content' => '<div style="display: inline-block; width: 200px; text-align: center; border-bottom: 1px solid #000; padding-bottom: 5px; margin-top: 40px;">ហត្ថលេខា / Signature</div>'
                                     ]
                                 ],
                                 'text_patterns' => [
                                     [ 'start' => '#logo', 'replacement' => '<div style="display: inline-block; width: 80px; height: 80px; border: 1px solid #000; border-radius: 50%; text-align: center; line-height: 80px;">LOGO</div>' ],
                                     [ 'start' => '#box', 'replacement' => '<div style="display: inline-block; width: 80px; height: 80px; border: 1px solid #000; text-align: center; line-height: 80px;">BOX</div>' ],
-                                    [ 'start' => '#photo', 'replacement' => '<div style="display: inline-block; width: 80px; height: 100px; border: 1px solid #000; text-align: center; padding-top: 30px; box-sizing: border-box;">រូបថត<br>៤x៦</div>' ]
+                                    [ 'start' => '#photo', 'replacement' => '<div style="display: inline-block; width: 80px; height: 100px; border: 1px solid #000; text-align: center; padding-top: 30px; box-sizing: border-box;">រូបថត<br>៤x៦</div>' ],
+                                    [ 'start' => '#checkbox', 'replacement' => '<div style="display: inline-block; width: 16px; height: 16px; border: 1px solid #000; text-align: center;"></div>' ],
+                                    [ 'start' => '#rounded', 'replacement' => '<div style="display: inline-block; width: 120px; height: 60px; border: 1px solid #000; border-radius: 10px; text-align: center; line-height: 60px;">TEXT</div>' ],
+                                    [ 'start' => '#oval', 'replacement' => '<div style="display: inline-block; width: 120px; height: 60px; border: 1px solid #000; border-radius: 50%; text-align: center; line-height: 60px;">OVAL</div>' ],
+                                    [ 'start' => '#sign', 'replacement' => '<div style="display: inline-block; width: 200px; text-align: center; border-bottom: 1px solid #000; padding-bottom: 5px; margin-top: 40px;">ហត្ថលេខា / Signature</div>' ]
                                 ]
                             ]),
                     ]),
