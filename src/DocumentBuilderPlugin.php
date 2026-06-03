@@ -8,8 +8,9 @@ use Chanthoeun\FilamentDocumentBuilder\Resources\DocumentTemplateResource;
 
 class DocumentBuilderPlugin implements Plugin
 {
-    protected ?string $navigationGroup = 'Document Builder';
+    protected string|bool|null $navigationGroup = 'Document Builder';
     protected string $navigationIcon = 'heroicon-o-document-duplicate';
+    protected ?int $navigationSort = null;
 
     public function getId(): string
     {
@@ -26,6 +27,17 @@ class DocumentBuilderPlugin implements Plugin
     public function getNavigationGroup(): ?string
     {
         return $this->navigationGroup;
+    }
+
+    public function navigationSort(?int $sort): static
+    {
+        $this->navigationSort = $sort;
+        return $this;
+    }
+
+    public function getNavigationSort(): ?int
+    {
+        return $this->navigationSort ?? config('filament-document-builder.navigation.sort');
     }
 
     public function navigationIcon(string $icon): static

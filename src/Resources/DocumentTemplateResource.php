@@ -24,6 +24,11 @@ class DocumentTemplateResource extends Resource
         return filament('filament-document-builder')->getNavigationGroup();
     }
 
+    public static function getNavigationSort(): ?int
+    {
+        return filament('filament-document-builder')->getNavigationSort();
+    }
+
     public static function form(Schema $schema): Schema
     {
         return DocumentTemplateForm::schema($schema);
