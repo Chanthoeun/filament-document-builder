@@ -5,6 +5,7 @@ namespace Chanthoeun\FilamentDocumentBuilder\Resources\DocumentTemplateResource\
 use Chanthoeun\FilamentDocumentBuilder\Models\DocumentTemplate;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Filament\Actions;
 
 class DocumentTemplateTable
 {
@@ -52,7 +53,7 @@ class DocumentTemplateTable
             ->defaultSort('created_at', 'desc')
             ->filters([])
             ->actions([
-                Tables\Actions\Action::make('preview_pdf')
+                Actions\Action::make('preview_pdf')
                     ->label(__('filament-document-builder::document-builder.labels.preview_pdf'))
                     ->icon('heroicon-o-eye')
                     ->color('info')
@@ -88,12 +89,12 @@ class DocumentTemplateTable
                             echo $pdf->output();
                         }, 'preview.pdf');
                     }),
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Actions\EditAction::make(),
+                Actions\DeleteAction::make(),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                Actions\BulkActionGroup::make([
+                    Actions\DeleteBulkAction::make(),
                 ]),
             ]);
     }

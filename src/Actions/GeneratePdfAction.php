@@ -4,7 +4,7 @@ namespace Chanthoeun\FilamentDocumentBuilder\Actions;
 
 use Chanthoeun\FilamentDocumentBuilder\Models\DocumentTemplate;
 use Chanthoeun\FilamentDocumentBuilder\Services\DocumentRenderer;
-use Filament\Tables\Actions\Action;
+use Filament\Actions\Action;
 use Illuminate\Database\Eloquent\Model;
 
 class GeneratePdfAction extends Action
