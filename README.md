@@ -47,6 +47,9 @@ public function panel(Panel $panel): Panel
     return $panel
         ->plugin(
             DocumentBuilderPlugin::make()
+                // Optional: Customize or remove the navigation group
+                // ->navigationGroup('Custom Group') // Move to another group
+                // ->navigationGroup(false) // Remove from groups entirely
         );
 }
 ```

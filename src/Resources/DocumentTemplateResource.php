@@ -15,7 +15,11 @@ class DocumentTemplateResource extends Resource
 {
     protected static ?string $model = DocumentTemplate::class;
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-document-duplicate';
-    protected static string|\UnitEnum|null $navigationGroup = 'Document Builder';
+
+    public static function getNavigationGroup(): ?string
+    {
+        return filament('filament-document-builder')->getNavigationGroup();
+    }
 
     public static function form(Schema $schema): Schema
     {
