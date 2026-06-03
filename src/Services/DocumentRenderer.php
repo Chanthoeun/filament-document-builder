@@ -25,7 +25,12 @@ class DocumentRenderer
             $key = html_entity_decode(str_replace('&nbsp;', '', $key));
             $key = trim($key);
             
-            return data_get($data, $key, ''); // Return empty string if key not found to print a clean blank form
+            $value = data_get($data, $key);
+            if ($value === null || $value === '') {
+                $dataType = is_object($data) ? get_class($data) : gettype($data);
+                return '[NOT FOUND: ' . $key . ' IN ' . $dataType . ']';
+            }
+            return $value;
         }, $content);
     }
 
