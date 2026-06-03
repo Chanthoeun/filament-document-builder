@@ -45,6 +45,12 @@ class DocumentTemplateForm
                             ->default([
                                 'format' => 'a4',
                                 'orientation' => 'portrait',
+                                'margin_left' => '15',
+                                'margin_right' => '15',
+                                'margin_top' => '16',
+                                'margin_bottom' => '16',
+                                'margin_header' => '9',
+                                'margin_footer' => '9',
                             ]),
                         Forms\Components\Repeater::make('extra_data_sources')
                             ->label('Additional Data Sources')
