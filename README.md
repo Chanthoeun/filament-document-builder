@@ -77,7 +77,27 @@ This plugin adds several pre-configured shapes to the TinyMCE editor to make des
 #### Flexbox Support in mPDF
 By default, mPDF does not support modern CSS Flexbox (`display: inline-flex`), which often breaks designs created in TinyMCE. This plugin **automatically polyfills** Flexbox behaviors (such as `inline-flex`, `align-items`, and `justify-content`) directly in PHP during the export process. Your TinyMCE layouts will render pixel-perfect in the final PDF without requiring complex CSS hacks!
 
-### 2. Exporting PDFs from your Resources
+### 2. Looping over Data (Table Repeaters)
+If you need to iterate over an array or Eloquent relationship (like line items on an invoice), you can use the built-in `{{#foreach}}` syntax directly in your template.
+
+Switch your TinyMCE editor to **Source Code (`<>`)** view and wrap your repeating elements like this:
+```html
+<tbody>
+    {{#foreach items as item}}
+    <tr>
+        <td>{{ item.description }}</td>
+        <td>{{ item.qty }}</td>
+        <td>{{ item.price }}</td>
+        <td>{{ item.total }}</td>
+    </tr>
+    {{/foreach}}
+</tbody>
+```
+- The engine will automatically loop through the `items` array or relationship.
+- You can access properties of each item using the prefix you define (e.g., `item.`).
+- **Bonus:** Inside the loop, you still have full access to global variables from the parent record!
+
+### 3. Exporting PDFs from your Resources
 To allow users to download a PDF of a specific record (like an Invoice or a Custom Form Entry), add the `GeneratePdfAction` to your resource's table actions.
 
 ```php
