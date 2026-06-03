@@ -97,7 +97,17 @@ Switch your TinyMCE editor to **Source Code (`<>`)** view and wrap your repeatin
 - You can access properties of each item using the prefix you define (e.g., `item.`).
 - **Bonus:** Inside the loop, you still have full access to global variables from the parent record!
 
-### 3. Exporting PDFs from your Resources
+### 3. Additional Data Sources (Multi-Model Support)
+If your document requires data from multiple independent models (e.g., a student application form that needs global `SchoolSettings` or a specific `Principal` user), you can map them entirely through the UI without touching any code!
+
+1. In the **Template Details** tab, click **Add to additional data sources**.
+2. Give it a Variable Name (e.g., `school`).
+3. Select the Database Model (e.g., `App\Models\SchoolSetting`) and choose "First Record" or "Latest Record".
+4. The TinyMCE editor will instantly update its **Insert Variable** dropdown to include all the fields from your new model (e.g., `school.name`, `school.address`).
+
+The PDF Engine will automatically execute these queries at runtime and securely merge the data into your document!
+
+### 4. Exporting PDFs from your Resources
 To allow users to download a PDF of a specific record (like an Invoice or a Custom Form Entry), add the `GeneratePdfAction` to your resource's table actions.
 
 ```php
