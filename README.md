@@ -138,24 +138,47 @@ If your document requires data from multiple independent models (e.g., a student
 The PDF Engine will automatically execute these queries at runtime and securely merge the data into your document!
 
 ### 4. Exporting PDFs from your Resources
-To allow users to download a PDF of a specific record (like an Invoice or a Custom Form Entry), add the `GeneratePdfAction` to your resource's table actions.
+
+To allow users to download a PDF of a specific record or bulk download multiple records, use the built-in Action classes.
+
+#### Row Action (Single PDF)
+Add `DownloadPdfAction` to your resource's table actions to download individual records:
 
 ```php
-use Chanthoeun\FilamentDocumentBuilder\Actions\GeneratePdfAction;
+use Chanthoeun\FilamentDocumentBuilder\Tables\Actions\DownloadPdfAction;
 
 public static function table(Table $table): Table
 {
     return $table
         // ... columns ...
         ->actions([
-            GeneratePdfAction::make('download_pdf')
+            DownloadPdfAction::make('download_pdf')
                 ->templateType('invoice') // The type string of the template you created
+                // Optional: Customize the filename
+                ->filename(fn ($record) => 'invoice-' . $record->id . '.pdf')
+                // Optional: Pass custom data (defaults to the $record itself)
                 ->data(fn ($record) => [
                     'name' => $record->customer_name,
                     'total' => $record->total_amount,
-                    'items' => $record->line_items->toArray(),
                 ])
         ]);
+}
+```
+
+#### Page Header Action (Bulk PDF)
+Add `DownloadAllPdfAction` to your List page header to download multiple records at once (combined into a single PDF with pagebreaks):
+
+```php
+use Chanthoeun\FilamentDocumentBuilder\Actions\DownloadAllPdfAction;
+
+protected function getHeaderActions(): array
+{
+    return [
+        DownloadAllPdfAction::make('download_all_pdf')
+            ->templateType('invoice')
+            ->records(fn () => $this->getFilteredTableQuery()->get()) // Provide the records to export
+            ->filename('invoices-export.pdf')
+    ];
 }
 ```
 
