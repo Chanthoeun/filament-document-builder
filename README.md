@@ -62,6 +62,21 @@ public function panel(Panel $panel): Panel
 4. Construct your document using the **Document Designer** tab. Because it uses TinyMCE, you can easily insert and modify highly complex HTML tables.
 5. If you plan to inject dynamic variables, type them using standard brace syntax (e.g., `Hello {{ name }}!`).
 
+#### Built-in Shapes and Forms Support
+This plugin adds several pre-configured shapes to the TinyMCE editor to make designing forms significantly easier:
+- Click the **Template** icon in the toolbar (or use the `Shapes` dropdown) to insert pre-made shapes like a **Circle Logo Placeholder**, a **4x6 Photo Box**, a **Rounded Rectangle**, or a **Signature Line**.
+- **Keyboard Shortcuts (Text Patterns):** You can also quickly insert shapes by typing the following codes and pressing Space:
+    - `#logo` -> Circular Logo Box
+    - `#box` -> Square Box
+    - `#photo` -> 4x6 Rectangle Photo Box
+    - `#checkbox` -> Small Checkbox
+    - `#rounded` -> Rounded Rectangle
+    - `#oval` -> Oval Shape
+    - `#sign` -> Signature Area with "ហត្ថលេខា / Signature"
+
+#### Flexbox Support in mPDF
+By default, mPDF does not support modern CSS Flexbox (`display: inline-flex`), which often breaks designs created in TinyMCE. This plugin **automatically polyfills** Flexbox behaviors (such as `inline-flex`, `align-items`, and `justify-content`) directly in PHP during the export process. Your TinyMCE layouts will render pixel-perfect in the final PDF without requiring complex CSS hacks!
+
 ### 2. Exporting PDFs from your Resources
 To allow users to download a PDF of a specific record (like an Invoice or a Custom Form Entry), add the `GeneratePdfAction` to your resource's table actions.
 
