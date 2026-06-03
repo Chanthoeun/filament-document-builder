@@ -13,10 +13,39 @@ class DocumentTemplateTable
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('name')->searchable(),
-                Tables\Columns\TextColumn::make('type')->searchable(),
-                Tables\Columns\TextColumn::make('created_at')->dateTime()->sortable(),
+                Tables\Columns\TextColumn::make('name')
+                    ->label('Template Name')
+                    ->searchable()
+                    ->sortable()
+                    ->weight('bold')
+                    ->description(fn (DocumentTemplate $record): string => $record->model_class ? 'Model: ' . class_basename($record->model_class) : 'No model linked'),
+                    
+                Tables\Columns\TextColumn::make('type')
+                    ->label('Document Type')
+                    ->searchable()
+                    ->sortable()
+                    ->badge()
+                    ->color(fn (string $state): string => match (strtolower($state)) {
+                        'invoice' => 'success',
+                        'receipt' => 'warning',
+                        'certificate' => 'info',
+                        'application' => 'primary',
+                        default => 'gray',
+                    }),
+
+                Tables\Columns\TextColumn::make('created_at')
+                    ->label('Created On')
+                    ->dateTime('M j, Y h:i A')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: false),
+                    
+                Tables\Columns\TextColumn::make('updated_at')
+                    ->label('Last Updated')
+                    ->dateTime('M j, Y h:i A')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
+            ->defaultSort('created_at', 'desc')
             ->filters([])
             ->actions([
                 FilamentActions\Action::make('preview_pdf')
