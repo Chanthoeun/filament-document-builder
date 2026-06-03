@@ -157,7 +157,7 @@ public static function table(Table $table): Table
                 // Optional: Customize the filename
                 ->filename(fn ($record) => 'invoice-' . $record->id . '.pdf')
                 // Optional: Pass custom data (defaults to the $record itself)
-                ->data(fn ($record) => [
+                ->recordData(fn ($record) => [
                     'name' => $record->customer_name,
                     'total' => $record->total_amount,
                 ])

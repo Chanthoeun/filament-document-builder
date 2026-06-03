@@ -81,7 +81,7 @@ class DownloadPdfAction extends Action
         return $this;
     }
 
-    public function data(\Closure $resolver): static
+    public function recordData(\Closure $resolver): static
     {
         $this->dataResolver = $resolver;
         return $this;
