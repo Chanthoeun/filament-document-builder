@@ -131,6 +131,9 @@ class DocumentRenderer
             if ($value === null || $value === '') {
                 return ''; // Return empty string instead of debug text in production
             }
+            if (is_array($value) || is_object($value)) {
+                return ''; // Ignore array printing rather than crashing mPDF
+            }
             return $value;
         }, $content);
     }
