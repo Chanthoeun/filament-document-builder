@@ -31,6 +31,27 @@ class DocumentRenderer
         // Replace variables in the entire HTML content
         $htmlContent = $this->replaceVariables($htmlContent, $data);
 
+        // mPDF compatibility fixes: convert Flexbox to inline-block
+        $htmlContent = preg_replace('/display:\s*inline-flex;?/', 'display: inline-block;', $htmlContent);
+        $htmlContent = preg_replace('/align-items:\s*center;?/', 'vertical-align: middle;', $htmlContent);
+        $htmlContent = preg_replace('/justify-content:\s*center;?/', 'text-align: center;', $htmlContent);
+        
+        // mPDF vertical centering fix: if a div has height and inline-block, set line-height to match height
+        $htmlContent = preg_replace_callback(
+            '/<div[^>]*style="([^"]*height:\s*(\d+px)[^"]*)"[^>]*>/i',
+            function ($matches) {
+                $style = $matches[1];
+                $height = $matches[2];
+                // Only add line-height if it doesn't exist
+                if (strpos($style, 'line-height') === false) {
+                    $newStyle = $style . ' line-height: ' . $height . ';';
+                    return str_replace($style, $newStyle, $matches[0]);
+                }
+                return $matches[0];
+            },
+            $htmlContent
+        );
+
         $html = view('filament-document-builder::document', [
             'htmlContent' => $htmlContent,
             'settings' => $template->page_settings,

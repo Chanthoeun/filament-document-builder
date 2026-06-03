@@ -5,10 +5,12 @@
     <title>Document</title>
     <style>
         body {
-            font-family: sans-serif;
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
             margin: 0;
-            padding: 20px;
-            color: #333;
+            padding: 0;
+            color: #000;
+            font-size: 14px;
+            line-height: 1.5;
         }
         .document-container {
             width: 100%;
@@ -22,20 +24,40 @@
         .mt-4 { margin-top: 1rem; }
         .mb-4 { margin-bottom: 1rem; }
         .w-full { width: 100%; }
+        
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+        
+        /* Table styles */
         table {
-            border-collapse: collapse;
             width: 100%;
+            /* Do not force border-collapse globally as it breaks border-radius in mPDF */
+            border-spacing: 0;
         }
-        table, th, td {
-            border: 1px solid #ddd;
+        
+        /* Apply collapse only to tables that likely need it (data tables) */
+        table[border="1"], 
+        table[style*="collapse"] {
+            border-collapse: collapse;
         }
+
         th, td {
-            padding: 8px;
-            text-align: left;
+            padding: 5px;
+            vertical-align: top;
         }
-        th {
-            background-color: #f4f4f4;
+
+        /* Fix border-radius for mPDF by forcing separate borders on elements with border-radius */
+        [style*="border-radius"] {
+            border-collapse: separate !important;
         }
+
+        /* Ensure images and inline blocks behave properly */
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+
     </style>
 </head>
 <body>
