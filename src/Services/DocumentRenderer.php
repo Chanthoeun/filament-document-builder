@@ -138,7 +138,7 @@ class DocumentRenderer
         }, $content);
     }
 
-    public function render(DocumentTemplate $template, array|object $data = [])
+    protected function processHtmlContent(DocumentTemplate $template, array|object $data = []): string
     {
         $htmlContent = $template->content ?? '';
         
@@ -206,6 +206,11 @@ class DocumentRenderer
             $htmlContent
         );
 
+        return $htmlContent;
+    }
+
+    protected function generatePdfFromHtml(DocumentTemplate $template, string $htmlContent)
+    {
         $html = view('filament-document-builder::document', [
             'htmlContent' => $htmlContent,
             'settings' => $template->page_settings,
@@ -229,8 +234,25 @@ class DocumentRenderer
             }
         }
 
-        $pdf = Pdf::loadHTML($html, $pdfConfig);
+        return Pdf::loadHTML($html, $pdfConfig);
+    }
 
-        return $pdf;
+    public function render(DocumentTemplate $template, array|object $data = [])
+    {
+        $htmlContent = $this->processHtmlContent($template, $data);
+        return $this->generatePdfFromHtml($template, $htmlContent);
+    }
+
+    public function renderMultiple(DocumentTemplate $template, iterable $records)
+    {
+        $htmlContents = [];
+        foreach ($records as $record) {
+            $htmlContents[] = $this->processHtmlContent($template, $record);
+        }
+
+        // Join multiple records with a pagebreak
+        $combinedHtml = implode('<pagebreak />', $htmlContents);
+        
+        return $this->generatePdfFromHtml($template, $combinedHtml);
     }
 }
