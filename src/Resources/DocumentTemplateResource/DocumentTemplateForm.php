@@ -46,6 +46,42 @@ class DocumentTemplateForm
                                 'format' => 'a4',
                                 'orientation' => 'portrait',
                             ]),
+                        Forms\Components\Repeater::make('extra_data_sources')
+                            ->label('Additional Data Sources')
+                            ->schema([
+                                Forms\Components\TextInput::make('variable_name')
+                                    ->required()
+                                    ->placeholder('e.g. school'),
+                                Forms\Components\Select::make('model_class')
+                                    ->label('Database Model')
+                                    ->required()
+                                    ->options(function () {
+                                        $models = [];
+                                        $path = app_path('Models');
+                                        if (is_dir($path)) {
+                                            foreach (scandir($path) as $file) {
+                                                if (pathinfo($file, PATHINFO_EXTENSION) === 'php') {
+                                                    $class = 'App\\Models\\' . pathinfo($file, PATHINFO_FILENAME);
+                                                    if (class_exists($class)) {
+                                                        $models[$class] = class_basename($class);
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        return $models;
+                                    })
+                                    ->searchable(),
+                                Forms\Components\Select::make('retrieval_method')
+                                    ->required()
+                                    ->options([
+                                        'first' => 'First Record',
+                                        'latest' => 'Latest Record',
+                                    ])
+                                    ->default('first'),
+                            ])
+                            ->columns(3)
+                            ->live()
+                            ->itemLabel(fn (array $state): ?string => $state['variable_name'] ?? null),
                     ]),
                     \Filament\Schemas\Components\Wizard\Step::make('Document Designer')->schema([
                         \AmidEsfahani\FilamentTinyEditor\TinyEditor::make('content')
@@ -60,8 +96,25 @@ class DocumentTemplateForm
                                 if ($modelClass && class_exists($modelClass)) {
                                     $model = new $modelClass;
                                     $vars = array_merge(['id', 'created_at', 'updated_at'], $model->getFillable());
-                                    sort($vars);
                                 }
+
+                                $extraSources = $get('extra_data_sources') ?? [];
+                                foreach ($extraSources as $source) {
+                                    if (!empty($source['variable_name'])) {
+                                        $vars[] = $source['variable_name'];
+                                        
+                                        // Try to load fillable fields from the extra model to give better autocompletion
+                                        if (!empty($source['model_class']) && class_exists($source['model_class'])) {
+                                            $extraModel = new $source['model_class'];
+                                            $fields = array_merge(['id', 'created_at', 'updated_at'], $extraModel->getFillable());
+                                            foreach ($fields as $field) {
+                                                $vars[] = $source['variable_name'] . '.' . $field;
+                                            }
+                                        }
+                                    }
+                                }
+                                
+                                sort($vars);
 
                                 return [
                                     'document_variables' => $vars,

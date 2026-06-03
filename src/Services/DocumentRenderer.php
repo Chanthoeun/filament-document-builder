@@ -30,6 +30,13 @@ class DocumentRenderer
 
                 $items = data_get($data, $arrayPath);
                 
+                // Fallback for parent scopes
+                $currentContext = $data;
+                while ($items === null && is_array($currentContext) && array_key_exists('_parent', $currentContext)) {
+                    $currentContext = $currentContext['_parent'];
+                    $items = data_get($currentContext, $arrayPath);
+                }
+                
                 if (!is_iterable($items)) {
                     return '';
                 }
@@ -75,9 +82,11 @@ class DocumentRenderer
             
             $value = data_get($data, $key);
             
-            // Fallback for loop inner blocks accessing parent variables
-            if ($value === null && is_array($data) && array_key_exists('_parent', $data)) {
-                $value = data_get($data['_parent'], $key);
+            // Fallback for parent scopes
+            $currentContext = $data;
+            while ($value === null && is_array($currentContext) && array_key_exists('_parent', $currentContext)) {
+                $currentContext = $currentContext['_parent'];
+                $value = data_get($currentContext, $key);
             }
 
             if ($value === null || $value === '') {
@@ -93,6 +102,26 @@ class DocumentRenderer
     public function render(DocumentTemplate $template, array|object $data = [])
     {
         $htmlContent = $template->content ?? '';
+        
+        // Fetch extra data sources defined in the template
+        $extraData = [];
+        if (!empty($template->extra_data_sources)) {
+            foreach ($template->extra_data_sources as $source) {
+                if (!empty($source['variable_name']) && !empty($source['model_class']) && class_exists($source['model_class'])) {
+                    $method = $source['retrieval_method'] ?? 'first';
+                    if ($method === 'latest') {
+                        $record = $source['model_class']::latest()->first();
+                    } else {
+                        $record = $source['model_class']::first();
+                    }
+                    $extraData[$source['variable_name']] = $record;
+                }
+            }
+        }
+
+        if (!empty($extraData)) {
+            $data = array_merge(['_parent' => $data], $extraData);
+        }
         
         // First replace any loops in the HTML content
         $htmlContent = $this->replaceLoops($htmlContent, $data);

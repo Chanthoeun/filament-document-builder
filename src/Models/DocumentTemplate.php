@@ -12,10 +12,12 @@ class DocumentTemplate extends Model
         'model_class',
         'content',
         'page_settings',
+        'extra_data_sources',
     ];
 
     protected $casts = [
         'content' => 'array',
         'page_settings' => 'array',
+        'extra_data_sources' => 'array',
     ];
 }
