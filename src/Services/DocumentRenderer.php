@@ -171,12 +171,24 @@ class DocumentRenderer
         $format = data_get($template->page_settings, 'format', 'a4');
         $orientation = data_get($template->page_settings, 'orientation', 'portrait');
         
-        $pdf = Pdf::loadHTML($html, [
+        $pdfConfig = [
             'format' => $format,
             'orientation' => $orientation === 'landscape' ? 'L' : 'P',
             'autoScriptToLang' => true,
             'autoLangToFont' => true,
-        ]);
+        ];
+
+        // Pass any other custom settings from the UI directly into the mPDF engine
+        if (is_array($template->page_settings)) {
+            foreach ($template->page_settings as $key => $value) {
+                if (!in_array($key, ['format', 'orientation']) && $value !== null && $value !== '') {
+                    // Convert numeric strings to actual numbers for margin settings
+                    $pdfConfig[$key] = is_numeric($value) ? (float) $value : $value;
+                }
+            }
+        }
+
+        $pdf = Pdf::loadHTML($html, $pdfConfig);
 
         return $pdf;
     }
