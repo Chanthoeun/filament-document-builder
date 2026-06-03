@@ -146,12 +146,27 @@ class DocumentTemplateResource extends Resource
                     ->icon('heroicon-o-eye')
                     ->color('info')
                     ->action(function (Models\DocumentTemplate $record) {
+                        if (empty($record->model_class)) {
+                            \Filament\Notifications\Notification::make()
+                                ->title('No Database Model Selected')
+                                ->body('You must select a Database Model in the Template Details and click Save before you can preview the PDF.')
+                                ->warning()
+                                ->send();
+                            return;
+                        }
+
                         $data = [];
-                        if ($record->model_class && class_exists($record->model_class)) {
-                            // Try to get a sample record for preview
+                        if (class_exists($record->model_class)) {
                             $sampleRecord = $record->model_class::first();
                             if ($sampleRecord) {
                                 $data = $sampleRecord;
+                            } else {
+                                \Filament\Notifications\Notification::make()
+                                    ->title('No Records Found')
+                                    ->body("There are no records in the {$record->model_class} table to preview with.")
+                                    ->warning()
+                                    ->send();
+                                return;
                             }
                         }
 
