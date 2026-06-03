@@ -62,6 +62,19 @@ class DocumentRenderer
             $htmlContent
         );
 
+        // Convert local asset URLs to absolute file paths so mPDF doesn't fail on Docker/localhost networking
+        $appUrl = config('app.url');
+        if (!str_ends_with($appUrl, '/')) {
+            $appUrl .= '/';
+        }
+        
+        // Convert both app.url/storage and /storage to public_path
+        $htmlContent = preg_replace(
+            '/src=["\'](' . preg_quote($appUrl, '/') . ')?storage\/(.*?)["\']/i',
+            'src="' . public_path('storage/$2') . '"',
+            $htmlContent
+        );
+
         $html = view('filament-document-builder::document', [
             'htmlContent' => $htmlContent,
             'settings' => $template->page_settings,
