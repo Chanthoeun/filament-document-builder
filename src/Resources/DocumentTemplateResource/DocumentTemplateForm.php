@@ -12,15 +12,17 @@ class DocumentTemplateForm
         return $schema
             ->schema([
                 \Filament\Schemas\Components\Wizard::make([
-                    \Filament\Schemas\Components\Wizard\Step::make('Template Details')->schema([
+                    \Filament\Schemas\Components\Wizard\Step::make(__('filament-document-builder::document-builder.labels.template_details'))->schema([
                         Forms\Components\TextInput::make('name')
+                            ->label(__('filament-document-builder::document-builder.labels.template_name'))
                             ->required()
                             ->maxLength(255),
                         Forms\Components\TextInput::make('type')
-                            ->placeholder('e.g. invoice, certificate, receipt')
+                            ->label(__('filament-document-builder::document-builder.labels.template_type'))
+                            ->placeholder(__('filament-document-builder::document-builder.labels.type_placeholder'))
                             ->maxLength(255),
                         Forms\Components\Select::make('model_class')
-                            ->label('Database Model')
+                            ->label(__('filament-document-builder::document-builder.labels.database_model'))
                             ->options(function () {
                                 $models = [];
                                 $path = app_path('Models');
@@ -37,11 +39,11 @@ class DocumentTemplateForm
                                 return $models;
                             })
                             ->live()
-                            ->placeholder('Select a model to use dynamic variables'),
+                            ->placeholder(__('filament-document-builder::document-builder.labels.model_placeholder')),
                         Forms\Components\KeyValue::make('page_settings')
-                            ->label('Page Settings')
-                            ->keyLabel('Setting')
-                            ->valueLabel('Value')
+                            ->label(__('filament-document-builder::document-builder.labels.page_settings'))
+                            ->keyLabel(__('filament-document-builder::document-builder.labels.setting'))
+                            ->valueLabel(__('filament-document-builder::document-builder.labels.value'))
                             ->default([
                                 'format' => 'a4',
                                 'orientation' => 'portrait',
@@ -53,13 +55,14 @@ class DocumentTemplateForm
                                 'margin_footer' => '9',
                             ]),
                         Forms\Components\Repeater::make('extra_data_sources')
-                            ->label('Additional Data Sources')
+                            ->label(__('filament-document-builder::document-builder.labels.additional_data_sources'))
                             ->schema([
                                 Forms\Components\TextInput::make('variable_name')
+                                    ->label(__('filament-document-builder::document-builder.labels.variable_name'))
                                     ->required()
-                                    ->placeholder('e.g. school'),
+                                    ->placeholder(__('filament-document-builder::document-builder.labels.variable_placeholder')),
                                 Forms\Components\Select::make('model_class')
-                                    ->label('Database Model')
+                                    ->label(__('filament-document-builder::document-builder.labels.database_model'))
                                     ->required()
                                     ->options(function () {
                                         $models = [];
@@ -78,10 +81,11 @@ class DocumentTemplateForm
                                     })
                                     ->searchable(),
                                 Forms\Components\Select::make('retrieval_method')
+                                    ->label(__('filament-document-builder::document-builder.labels.retrieval_method'))
                                     ->required()
                                     ->options([
-                                        'first' => 'First Record',
-                                        'latest' => 'Latest Record',
+                                        'first' => __('filament-document-builder::document-builder.labels.first_record'),
+                                        'latest' => __('filament-document-builder::document-builder.labels.latest_record'),
                                     ])
                                     ->default('first'),
                             ])
@@ -89,8 +93,9 @@ class DocumentTemplateForm
                             ->live()
                             ->itemLabel(fn (array $state): ?string => $state['variable_name'] ?? null),
                     ]),
-                    \Filament\Schemas\Components\Wizard\Step::make('Document Designer')->schema([
+                    \Filament\Schemas\Components\Wizard\Step::make(__('filament-document-builder::document-builder.labels.document_designer'))->schema([
                         \AmidEsfahani\FilamentTinyEditor\TinyEditor::make('content')
+                            ->label(__('filament-document-builder::document-builder.labels.document_designer'))
                             ->required()
                             ->columnSpanFull()
                             ->fileAttachmentsDisk('public')
