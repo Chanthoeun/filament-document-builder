@@ -17,8 +17,13 @@ class DocumentTemplateTable
                     ->label('Template Name')
                     ->searchable()
                     ->sortable()
-                    ->weight('bold')
-                    ->description(fn (DocumentTemplate $record): string => $record->model_class ? 'Model: ' . class_basename($record->model_class) : 'No model linked'),
+                    ->weight('bold'),
+                    
+                Tables\Columns\TextColumn::make('model_class')
+                    ->label('Database Model')
+                    ->searchable()
+                    ->sortable()
+                    ->formatStateUsing(fn (?string $state): string => $state ? class_basename($state) : 'None'),
                     
                 Tables\Columns\TextColumn::make('type')
                     ->label('Document Type')
