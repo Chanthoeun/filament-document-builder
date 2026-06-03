@@ -13,33 +13,35 @@ class DocumentTemplateForm
             ->schema([
                 \Filament\Schemas\Components\Wizard::make([
                     \Filament\Schemas\Components\Wizard\Step::make(__('filament-document-builder::document-builder.labels.template_details'))->schema([
-                        Forms\Components\TextInput::make('name')
-                            ->label(__('filament-document-builder::document-builder.labels.template_name'))
-                            ->required()
-                            ->maxLength(255),
-                        Forms\Components\TextInput::make('type')
-                            ->label(__('filament-document-builder::document-builder.labels.template_type'))
-                            ->placeholder(__('filament-document-builder::document-builder.labels.type_placeholder'))
-                            ->maxLength(255),
-                        Forms\Components\Select::make('model_class')
-                            ->label(__('filament-document-builder::document-builder.labels.database_model'))
-                            ->options(function () {
-                                $models = [];
-                                $path = app_path('Models');
-                                if (is_dir($path)) {
-                                    foreach (scandir($path) as $file) {
-                                        if (pathinfo($file, PATHINFO_EXTENSION) === 'php') {
-                                            $class = 'App\\Models\\' . pathinfo($file, PATHINFO_FILENAME);
-                                            if (class_exists($class)) {
-                                                $models[$class] = class_basename($class);
+                        Forms\Components\Grid::make(3)->schema([
+                            Forms\Components\TextInput::make('name')
+                                ->label(__('filament-document-builder::document-builder.labels.template_name'))
+                                ->required()
+                                ->maxLength(255),
+                            Forms\Components\TextInput::make('type')
+                                ->label(__('filament-document-builder::document-builder.labels.template_type'))
+                                ->placeholder(__('filament-document-builder::document-builder.labels.type_placeholder'))
+                                ->maxLength(255),
+                            Forms\Components\Select::make('model_class')
+                                ->label(__('filament-document-builder::document-builder.labels.database_model'))
+                                ->options(function () {
+                                    $models = [];
+                                    $path = app_path('Models');
+                                    if (is_dir($path)) {
+                                        foreach (scandir($path) as $file) {
+                                            if (pathinfo($file, PATHINFO_EXTENSION) === 'php') {
+                                                $class = 'App\\Models\\' . pathinfo($file, PATHINFO_FILENAME);
+                                                if (class_exists($class)) {
+                                                    $models[$class] = class_basename($class);
+                                                }
                                             }
                                         }
                                     }
-                                }
-                                return $models;
-                            })
-                            ->live()
-                            ->placeholder(__('filament-document-builder::document-builder.labels.model_placeholder')),
+                                    return $models;
+                                })
+                                ->live()
+                                ->placeholder(__('filament-document-builder::document-builder.labels.model_placeholder')),
+                        ]),
                         Forms\Components\KeyValue::make('page_settings')
                             ->label(__('filament-document-builder::document-builder.labels.page_settings'))
                             ->keyLabel(__('filament-document-builder::document-builder.labels.setting'))
