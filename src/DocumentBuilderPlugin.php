@@ -9,6 +9,7 @@ use Chanthoeun\FilamentDocumentBuilder\Resources\DocumentTemplateResource;
 class DocumentBuilderPlugin implements Plugin
 {
     protected ?string $navigationGroup = 'Document Builder';
+    protected string $navigationIcon = 'heroicon-o-document-duplicate';
 
     public function getId(): string
     {
@@ -25,6 +26,17 @@ class DocumentBuilderPlugin implements Plugin
     public function getNavigationGroup(): ?string
     {
         return $this->navigationGroup;
+    }
+
+    public function navigationIcon(string $icon): static
+    {
+        $this->navigationIcon = $icon;
+        return $this;
+    }
+
+    public function getNavigationIcon(): string
+    {
+        return $this->navigationIcon;
     }
 
     public function register(Panel $panel): void

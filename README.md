@@ -50,6 +50,7 @@ public function panel(Panel $panel): Panel
                 // Optional: Customize or remove the navigation group
                 // ->navigationGroup('Custom Group') // Move to another group
                 // ->navigationGroup(false) // Remove from groups entirely
+                // ->navigationIcon('heroicon-o-document-text') // Change the navigation icon
         );
 }
 ```

@@ -14,7 +14,11 @@ use Chanthoeun\FilamentDocumentBuilder\Resources\DocumentTemplateResource\Pages;
 class DocumentTemplateResource extends Resource
 {
     protected static ?string $model = DocumentTemplate::class;
-    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-document-duplicate';
+
+    public static function getNavigationIcon(): string|\BackedEnum|null
+    {
+        return filament('filament-document-builder')->getNavigationIcon();
+    }
 
     public static function getNavigationGroup(): ?string
     {
