@@ -4,7 +4,7 @@ namespace Chanthoeun\FilamentDocumentBuilder\Tables\Actions;
 
 use Chanthoeun\FilamentDocumentBuilder\Models\DocumentTemplate;
 use Chanthoeun\FilamentDocumentBuilder\Services\DocumentRenderer;
-use Filament\Tables\Actions\Action;
+use Filament\Actions\Action;
 use Illuminate\Database\Eloquent\Model;
 use Filament\Notifications\Notification;
 
