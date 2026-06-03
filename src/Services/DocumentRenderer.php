@@ -18,8 +18,13 @@ class DocumentRenderer
         }
 
         // Basic replacement logic for {{ variable }} or {{ variable.key }}
-        return preg_replace_callback('/{{\s*(.+?)\s*}}/', function ($matches) use ($data) {
-            $key = $matches[1];
+        // We use the 's' modifier to match across lines, and strip_tags to handle TinyMCE styling inside braces
+        return preg_replace_callback('/{{(.*?)}}/s', function ($matches) use ($data) {
+            $key = trim(strip_tags($matches[1]));
+            // Clean up any html entities or non-breaking spaces
+            $key = html_entity_decode(str_replace('&nbsp;', '', $key));
+            $key = trim($key);
+            
             return data_get($data, $key, ''); // Return empty string if key not found to print a clean blank form
         }, $content);
     }
