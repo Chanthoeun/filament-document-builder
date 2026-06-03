@@ -47,6 +47,7 @@ class DocumentTemplateForm
                             ->default([
                                 'format' => 'a4',
                                 'orientation' => 'portrait',
+                                'default_font' => 'calibri',
                                 'margin_left' => '15',
                                 'margin_right' => '15',
                                 'margin_top' => '16',
@@ -130,7 +131,7 @@ class DocumentTemplateForm
                                 return [
                                     'document_variables' => $vars,
                                     'font_family_formats' => 'Arial=arial,helvetica,sans-serif; Calibri=calibri,sans-serif; Times New Roman="times new roman",times,serif; Khmer Battambang=Battambang,sans-serif; Khmer Moul Light="Khmer OS Muol Light",Moul,cursive; Khmer Siemreap=Siemreap,sans-serif;',
-                                    'content_style' => '@import url("https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Moul&family=Siemreap&display=swap"); body { font-family: "Battambang", Arial, sans-serif; }',
+                                    'content_style' => '@import url("https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Moul&family=Siemreap&display=swap"); body { font-family: Calibri, "Battambang", Arial, sans-serif; }',
                                     'plugins' => 'custom_shapes accordion autoresize codesample directionality advlist autolink link image lists charmap preview anchor pagebreak searchreplace wordcount visualblocks visualchars code fullscreen insertdatetime media table emoticons help template',
                                     'toolbar' => 'undo redo removeformat | fontfamily fontsize fontsizeinput font_size_formats styles | bold italic underline | rtl ltr | alignjustify alignright aligncenter alignleft | numlist bullist outdent indent accordion | forecolor backcolor | blockquote table toc hr | image link anchor media codesample emoticons template insert_variable | visualblocks print preview wordcount fullscreen help',
                                     'templates' => [
