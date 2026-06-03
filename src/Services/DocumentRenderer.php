@@ -9,6 +9,48 @@ use Illuminate\Support\Str;
 class DocumentRenderer
 {
     /**
+     * Cache for extra data sources during the request lifecycle to prevent N+1 queries across multiple PDFs.
+     */
+    protected static array $extraDataCache = [];
+
+    /**
+     * Eager load relations used in the template to prevent N+1 queries.
+     */
+    protected function preloadRelations(?string $content, array|object $data): void
+    {
+        if (empty($content) || !($data instanceof \Illuminate\Database\Eloquent\Model)) {
+            return;
+        }
+
+        // Find all {{ variable.nested }} or {{#foreach variable.nested as ...}}
+        preg_match_all('/{{\s*(?:#foreach\s+)?([a-zA-Z0-9_\.]+)/', $content, $matches);
+        
+        $relationsToLoad = [];
+        foreach ($matches[1] as $match) {
+            $parts = explode('.', $match);
+            // If there's a dot, the preceding parts are likely relations
+            if (count($parts) > 1) {
+                array_pop($parts); // Remove the field name
+                $relation = implode('.', $parts);
+                $relationsToLoad[] = $relation;
+            }
+        }
+
+        if (!empty($relationsToLoad)) {
+            // Only load relations that actually exist on the model to avoid exceptions
+            $validRelations = [];
+            foreach (array_unique($relationsToLoad) as $rel) {
+                if (method_exists($data, explode('.', $rel)[0])) {
+                    $validRelations[] = $rel;
+                }
+            }
+            if (!empty($validRelations)) {
+                $data->loadMissing($validRelations);
+            }
+        }
+    }
+
+    /**
      * Replaces loop blocks like {{#foreach items as item}} ... {{/foreach}}
      */
     protected function replaceLoops(?string $content, array|object $data): ?string
@@ -17,6 +59,7 @@ class DocumentRenderer
             return $content;
         }
 
+        // Use a non-greedy match to prevent catastrophic backtracking on large documents
         return preg_replace_callback(
             '/{{.*?#foreach\s+(.*?)\s+as\s+(.*?).*?}}(.*?){{.*?\/foreach.*?}}/is',
             function ($matches) use ($data) {
@@ -68,21 +111,17 @@ class DocumentRenderer
         }
 
         // Basic replacement logic for {{ variable }} or {{ variable.key }}
-        // We use the 's' modifier to match across lines, and strip_tags to handle TinyMCE styling inside braces
         return preg_replace_callback('/{{(.*?)}}/s', function ($matches) use ($data) {
             $key = trim(strip_tags($matches[1]));
-            // Clean up any html entities or non-breaking spaces
             $key = html_entity_decode(str_replace('&nbsp;', '', $key));
             $key = trim($key);
             
-            // Skip loop opening/closing tags that might have been processed or are broken
             if (str_starts_with($key, '#foreach') || str_starts_with($key, '/foreach')) {
                 return $matches[0];
             }
             
             $value = data_get($data, $key);
             
-            // Fallback for parent scopes
             $currentContext = $data;
             while ($value === null && is_array($currentContext) && array_key_exists('_parent', $currentContext)) {
                 $currentContext = $currentContext['_parent'];
@@ -90,10 +129,7 @@ class DocumentRenderer
             }
 
             if ($value === null || $value === '') {
-                // If it's a loop context, check if we're debugging the parent or the item
-                $debugData = (is_array($data) && array_key_exists('_parent', $data)) ? $data['_parent'] : $data;
-                $dataType = is_object($debugData) ? get_class($debugData) : gettype($debugData);
-                return '[NOT FOUND: ' . $key . ' IN ' . $dataType . ']';
+                return ''; // Return empty string instead of debug text in production
             }
             return $value;
         }, $content);
@@ -103,18 +139,26 @@ class DocumentRenderer
     {
         $htmlContent = $template->content ?? '';
         
-        // Fetch extra data sources defined in the template
+        // Eager load relations to prevent N+1 performance bottlenecks
+        $this->preloadRelations($htmlContent, $data);
+        
+        // Fetch extra data sources defined in the template (Cached statically)
         $extraData = [];
         if (!empty($template->extra_data_sources)) {
             foreach ($template->extra_data_sources as $source) {
                 if (!empty($source['variable_name']) && !empty($source['model_class']) && class_exists($source['model_class'])) {
                     $method = $source['retrieval_method'] ?? 'first';
-                    if ($method === 'latest') {
-                        $record = $source['model_class']::latest()->first();
-                    } else {
-                        $record = $source['model_class']::first();
+                    $cacheKey = md5($source['model_class'] . '_' . $method);
+                    
+                    if (!isset(self::$extraDataCache[$cacheKey])) {
+                        if ($method === 'latest') {
+                            self::$extraDataCache[$cacheKey] = $source['model_class']::latest()->first();
+                        } else {
+                            self::$extraDataCache[$cacheKey] = $source['model_class']::first();
+                        }
                     }
-                    $extraData[$source['variable_name']] = $record;
+                    
+                    $extraData[$source['variable_name']] = self::$extraDataCache[$cacheKey];
                 }
             }
         }
@@ -123,24 +167,19 @@ class DocumentRenderer
             $data = array_merge(['_parent' => $data], $extraData);
         }
         
-        // First replace any loops in the HTML content
         $htmlContent = $this->replaceLoops($htmlContent, $data);
-
-        // Then replace variables in the remaining HTML content
         $htmlContent = $this->replaceVariables($htmlContent, $data);
 
-        // mPDF compatibility fixes: convert Flexbox to inline-block
+        // mPDF compatibility fixes
         $htmlContent = preg_replace('/display:\s*inline-flex;?/', 'display: inline-block;', $htmlContent);
         $htmlContent = preg_replace('/align-items:\s*center;?/', 'vertical-align: middle;', $htmlContent);
         $htmlContent = preg_replace('/justify-content:\s*center;?/', 'text-align: center;', $htmlContent);
         
-        // mPDF vertical centering fix: if a div has height and inline-block, set line-height to match height
         $htmlContent = preg_replace_callback(
             '/<div[^>]*style="([^"]*height:\s*(\d+px)[^"]*)"[^>]*>/i',
             function ($matches) {
                 $style = $matches[1];
                 $height = $matches[2];
-                // Only add line-height if it doesn't exist
                 if (strpos($style, 'line-height') === false) {
                     $newStyle = $style . ' line-height: ' . $height . ';';
                     return str_replace($style, $newStyle, $matches[0]);
@@ -150,13 +189,14 @@ class DocumentRenderer
             $htmlContent
         );
 
-        // Convert local asset URLs to absolute file paths so mPDF doesn't fail on Docker/localhost networking
+        // Strip remote Google Fonts @import rules to prevent massive mPDF network delays
+        $htmlContent = preg_replace('/@import\s+url\([\'"]?https:\/\/fonts\.googleapis\.com.*?[\'"]?\);?/i', '', $htmlContent);
+
         $appUrl = config('app.url');
         if (!str_ends_with($appUrl, '/')) {
             $appUrl .= '/';
         }
         
-        // Convert both app.url/storage and /storage to public_path
         $htmlContent = preg_replace(
             '/src=["\'](' . preg_quote($appUrl, '/') . ')?storage\/(.*?)["\']/i',
             'src="' . public_path('storage/$2') . '"',
@@ -178,11 +218,9 @@ class DocumentRenderer
             'autoLangToFont' => true,
         ];
 
-        // Pass any other custom settings from the UI directly into the mPDF engine
         if (is_array($template->page_settings)) {
             foreach ($template->page_settings as $key => $value) {
                 if (!in_array($key, ['format', 'orientation']) && $value !== null && $value !== '') {
-                    // Convert numeric strings to actual numbers for margin settings
                     $pdfConfig[$key] = is_numeric($value) ? (float) $value : $value;
                 }
             }
