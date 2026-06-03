@@ -74,22 +74,12 @@ To override the default English and Khmer language files, run:
 php artisan vendor:publish --tag="filament-document-builder-translations"
 ```
 
-### 3. Customizing the Resource Location
-Do **not** attempt to publish the raw PHP Resource class, as this will break future plugin updates. Instead, if you want to change where the Document Builder appears in your sidebar, customize it directly in your `AdminPanelProvider.php` using the plugin object:
-
-```php
-use Chanthoeun\FilamentDocumentBuilder\DocumentBuilderPlugin;
-
-public function panel(Panel $panel): Panel
-{
-    return $panel
-        ->plugins([
-            DocumentBuilderPlugin::make()
-                ->navigationGroup('System Settings') // Change the group
-                ->navigationIcon('heroicon-o-document-duplicate') // Change the icon
-        ]);
-}
+### 3. Publishing the Document Template Resource
+If you want complete control over the `DocumentTemplateResource` (e.g., to change its location, permissions, or logic), you can safely publish it to your application by running:
+```bash
+php artisan filament-document-builder:publish-resource
 ```
+This command intelligently copies the resource files into your `app/Filament/Resources` directory and automatically updates all namespaces. The plugin will automatically detect that you've published the resource and will gracefully yield control, preventing any conflicts.
 
 ---
 

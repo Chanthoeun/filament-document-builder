@@ -5,7 +5,7 @@ namespace Chanthoeun\FilamentDocumentBuilder\Resources\DocumentTemplateResource\
 use Chanthoeun\FilamentDocumentBuilder\Models\DocumentTemplate;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Filament\Actions;
+use Filament\Tables\Actions;
 
 class DocumentTemplateTable
 {

@@ -5,7 +5,7 @@ namespace Chanthoeun\FilamentDocumentBuilder\Resources\DocumentTemplateResource\
 use Filament\Forms;
 use Filament\Schemas\Schema;
 
-class DocumentTemplateSchema
+class DocumentTemplateForm
 {
     public static function schema(Schema $schema): Schema
     {
@@ -36,6 +36,9 @@ class DocumentTemplateSchema
                                                 }
                                             }
                                         }
+                                    }
+                                    if (class_exists(\Chanthoeun\FilamentCustomForms\Models\CustomFormEntry::class)) {
+                                        $models[\Chanthoeun\FilamentCustomForms\Models\CustomFormEntry::class] = 'Custom Form Entry';
                                     }
                                     return $models;
                                 })
@@ -80,6 +83,9 @@ class DocumentTemplateSchema
                                                 }
                                             }
                                         }
+                                        if (class_exists(\Chanthoeun\FilamentCustomForms\Models\CustomFormEntry::class)) {
+                                            $models[\Chanthoeun\FilamentCustomForms\Models\CustomFormEntry::class] = 'Custom Form Entry';
+                                        }
                                         return $models;
                                     })
                                     ->searchable(),
@@ -110,6 +116,30 @@ class DocumentTemplateSchema
                                 if ($modelClass && class_exists($modelClass)) {
                                     $model = new $modelClass;
                                     $vars = array_merge(['id', 'created_at', 'updated_at'], $model->getFillable());
+
+                                    $type = $get('type');
+                                    if ($modelClass === \Chanthoeun\FilamentCustomForms\Models\CustomFormEntry::class && $type && str_starts_with($type, 'custom_form_')) {
+                                        $formId = str_replace('custom_form_', '', $type);
+                                        $customForm = \Chanthoeun\FilamentCustomForms\Models\CustomForm::find($formId);
+                                        if ($customForm && is_array($customForm->schema)) {
+                                            $customFields = [];
+                                            $extractFields = function($schema) use (&$extractFields, &$customFields) {
+                                                foreach ($schema as $block) {
+                                                    $bType = $block['type'] ?? null;
+                                                    $data = $block['data'] ?? [];
+                                                    if (in_array($bType, ['section', 'grid', 'fieldset', 'repeater'])) {
+                                                        if (!empty($data['schema'])) {
+                                                            $extractFields($data['schema']);
+                                                        }
+                                                    } elseif (!empty($data['name'])) {
+                                                        $customFields[] = 'data.' . $data['name'];
+                                                    }
+                                                }
+                                            };
+                                            $extractFields($customForm->schema);
+                                            $vars = array_merge($vars, $customFields);
+                                        }
+                                    }
                                 }
 
                                 $extraSources = $get('extra_data_sources') ?? [];

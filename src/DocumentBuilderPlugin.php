@@ -41,10 +41,14 @@ class DocumentBuilderPlugin implements Plugin
 
     public function register(Panel $panel): void
     {
-        $panel
-            ->resources([
-                DocumentTemplateResource::class,
-            ]);
+        $resources = [];
+
+        // Only register the internal resource if the user hasn't published it to their own application
+        if (!class_exists(\App\Filament\Resources\DocumentTemplateResource::class)) {
+            $resources[] = DocumentTemplateResource::class;
+        }
+
+        $panel->resources($resources);
     }
 
     public function boot(Panel $panel): void

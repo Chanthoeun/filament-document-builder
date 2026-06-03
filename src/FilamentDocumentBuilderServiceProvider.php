@@ -16,7 +16,8 @@ class FilamentDocumentBuilderServiceProvider extends PackageServiceProvider
             ->hasConfigFile()
             ->hasViews()
             ->hasTranslations()
-            ->hasMigration('create_document_templates_table');
+            ->hasMigration('create_document_templates_table')
+            ->hasCommand(\Chanthoeun\FilamentDocumentBuilder\Commands\PublishResourceCommand::class);
     }
 
     public function packageBooted(): void
@@ -24,5 +25,12 @@ class FilamentDocumentBuilderServiceProvider extends PackageServiceProvider
         FilamentAsset::register([
             Js::make('custom-shapes', __DIR__ . '/../resources/js/custom-shapes.js'),
         ], 'chanthoeun/filament-document-builder');
+
+        if ($this->app->runningInConsole()) {
+            $this->publishes([
+                __DIR__ . '/Resources/DocumentTemplateResource.php' => app_path('Filament/Resources/DocumentTemplateResource.php'),
+                __DIR__ . '/Resources/DocumentTemplateResource' => app_path('Filament/Resources/DocumentTemplateResource'),
+            ], 'filament-document-template');
+        }
     }
 }
