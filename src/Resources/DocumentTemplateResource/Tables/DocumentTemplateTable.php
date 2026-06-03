@@ -1,11 +1,10 @@
 <?php
 
-namespace Chanthoeun\FilamentDocumentBuilder\Resources\DocumentTemplateResource;
+namespace Chanthoeun\FilamentDocumentBuilder\Resources\DocumentTemplateResource\Tables;
 
 use Chanthoeun\FilamentDocumentBuilder\Models\DocumentTemplate;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Filament\Actions as FilamentActions;
 
 class DocumentTemplateTable
 {
@@ -53,7 +52,7 @@ class DocumentTemplateTable
             ->defaultSort('created_at', 'desc')
             ->filters([])
             ->actions([
-                FilamentActions\Action::make('preview_pdf')
+                Tables\Actions\Action::make('preview_pdf')
                     ->label(__('filament-document-builder::document-builder.labels.preview_pdf'))
                     ->icon('heroicon-o-eye')
                     ->color('info')
@@ -89,12 +88,12 @@ class DocumentTemplateTable
                             echo $pdf->output();
                         }, 'preview.pdf');
                     }),
-                FilamentActions\EditAction::make(),
-                FilamentActions\DeleteAction::make(),
+                Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
-                FilamentActions\BulkActionGroup::make([
-                    FilamentActions\DeleteBulkAction::make(),
+                Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);
     }

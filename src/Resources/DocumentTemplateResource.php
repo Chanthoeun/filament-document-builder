@@ -3,13 +3,12 @@
 namespace Chanthoeun\FilamentDocumentBuilder\Resources;
 
 use Chanthoeun\FilamentDocumentBuilder\Models\DocumentTemplate;
-use Filament\Forms;
 use Filament\Schemas\Schema;
 use Filament\Resources\Resource;
-use Filament\Tables;
 use Filament\Tables\Table;
-use Filament\Actions;
 use Chanthoeun\FilamentDocumentBuilder\Resources\DocumentTemplateResource\Pages;
+use Chanthoeun\FilamentDocumentBuilder\Resources\DocumentTemplateResource\Schemas\DocumentTemplateSchema;
+use Chanthoeun\FilamentDocumentBuilder\Resources\DocumentTemplateResource\Tables\DocumentTemplateTable;
 
 class DocumentTemplateResource extends Resource
 {
@@ -27,12 +26,12 @@ class DocumentTemplateResource extends Resource
 
     public static function form(Schema $schema): Schema
     {
-        return DocumentTemplateResource\DocumentTemplateForm::schema($schema);
+        return DocumentTemplateSchema::schema($schema);
     }
 
     public static function table(Table $table): Table
     {
-        return DocumentTemplateResource\DocumentTemplateTable::table($table);
+        return DocumentTemplateTable::table($table);
     }
 
     public static function getPages(): array

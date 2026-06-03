@@ -1,11 +1,11 @@
 <?php
 
-namespace Chanthoeun\FilamentDocumentBuilder\Resources\DocumentTemplateResource;
+namespace Chanthoeun\FilamentDocumentBuilder\Resources\DocumentTemplateResource\Schemas;
 
 use Filament\Forms;
 use Filament\Schemas\Schema;
 
-class DocumentTemplateForm
+class DocumentTemplateSchema
 {
     public static function schema(Schema $schema): Schema
     {
@@ -47,15 +47,15 @@ class DocumentTemplateForm
                             ->keyLabel(__('filament-document-builder::document-builder.labels.setting'))
                             ->valueLabel(__('filament-document-builder::document-builder.labels.value'))
                             ->default([
-                                'format' => 'a4',
-                                'orientation' => 'portrait',
+                                'format' => config('filament-document-builder.default_paper_size', 'a4'),
+                                'orientation' => config('filament-document-builder.default_orientation', 'portrait'),
                                 'default_font' => 'calibri',
-                                'margin_left' => '15',
-                                'margin_right' => '15',
-                                'margin_top' => '16',
-                                'margin_bottom' => '16',
-                                'margin_header' => '9',
-                                'margin_footer' => '9',
+                                'margin_left' => config('filament-document-builder.default_margins.left', '15'),
+                                'margin_right' => config('filament-document-builder.default_margins.right', '15'),
+                                'margin_top' => config('filament-document-builder.default_margins.top', '16'),
+                                'margin_bottom' => config('filament-document-builder.default_margins.bottom', '16'),
+                                'margin_header' => config('filament-document-builder.default_margins.header', '9'),
+                                'margin_footer' => config('filament-document-builder.default_margins.footer', '9'),
                             ]),
                         Forms\Components\Repeater::make('extra_data_sources')
                             ->label(__('filament-document-builder::document-builder.labels.additional_data_sources'))
@@ -117,7 +117,6 @@ class DocumentTemplateForm
                                     if (!empty($source['variable_name'])) {
                                         $vars[] = $source['variable_name'];
                                         
-                                        // Try to load fillable fields from the extra model to give better autocompletion
                                         if (!empty($source['model_class']) && class_exists($source['model_class'])) {
                                             $extraModel = new $source['model_class'];
                                             $fields = array_merge(['id', 'created_at', 'updated_at'], $extraModel->getFillable());
