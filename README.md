@@ -57,6 +57,42 @@ public function panel(Panel $panel): Panel
 
 ---
 
+## Configuration & Publishing
+
+Because this plugin is built with `Spatie\LaravelPackageTools`, all publishing logic is wired up natively.
+
+### 1. Publishing the Config File
+To customize default paper sizes, orientations, and margins, publish the config file:
+```bash
+php artisan vendor:publish --tag="filament-document-builder-config"
+```
+This will create `config/filament-document-builder.php` in your application.
+
+### 2. Publishing Translations
+To override the default English and Khmer language files, run:
+```bash
+php artisan vendor:publish --tag="filament-document-builder-translations"
+```
+
+### 3. Customizing the Resource Location
+Do **not** attempt to publish the raw PHP Resource class, as this will break future plugin updates. Instead, if you want to change where the Document Builder appears in your sidebar, customize it directly in your `AdminPanelProvider.php` using the plugin object:
+
+```php
+use Chanthoeun\FilamentDocumentBuilder\DocumentBuilderPlugin;
+
+public function panel(Panel $panel): Panel
+{
+    return $panel
+        ->plugins([
+            DocumentBuilderPlugin::make()
+                ->navigationGroup('System Settings') // Change the group
+                ->navigationIcon('heroicon-o-document-duplicate') // Change the icon
+        ]);
+}
+```
+
+---
+
 ## Usage
 
 ### 1. Creating a Template
