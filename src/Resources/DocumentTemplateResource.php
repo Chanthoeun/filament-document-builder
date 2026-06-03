@@ -21,8 +21,8 @@ class DocumentTemplateResource extends Resource
     {
         return $schema
             ->schema([
-                \Filament\Schemas\Components\Tabs::make('Template Builder')->tabs([
-                    \Filament\Schemas\Components\Tabs\Tab::make('Template Details')->schema([
+                \Filament\Schemas\Components\Wizard::make([
+                    \Filament\Schemas\Components\Wizard\Step::make('Template Details')->schema([
                         Forms\Components\TextInput::make('name')
                             ->required()
                             ->maxLength(255),
@@ -38,7 +38,7 @@ class DocumentTemplateResource extends Resource
                                 'orientation' => 'portrait',
                             ]),
                     ]),
-                    \Filament\Schemas\Components\Tabs\Tab::make('Document Designer')->schema([
+                    \Filament\Schemas\Components\Wizard\Step::make('Document Designer')->schema([
                         \AmidEsfahani\FilamentTinyEditor\TinyEditor::make('content')
                             ->required()
                             ->columnSpanFull()
