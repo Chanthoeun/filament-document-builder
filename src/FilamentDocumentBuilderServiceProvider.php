@@ -4,6 +4,8 @@ namespace Chanthoeun\FilamentDocumentBuilder;
 
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
+use Filament\Support\Assets\Js;
+use Filament\Support\Facades\FilamentAsset;
 
 class FilamentDocumentBuilderServiceProvider extends PackageServiceProvider
 {
@@ -14,5 +16,12 @@ class FilamentDocumentBuilderServiceProvider extends PackageServiceProvider
             ->hasConfigFile()
             ->hasViews()
             ->hasMigration('create_document_templates_table');
+    }
+
+    public function packageBooted(): void
+    {
+        FilamentAsset::register([
+            Js::make('custom-shapes', __DIR__ . '/../resources/js/custom-shapes.js'),
+        ], 'chanthoeun/filament-document-builder');
     }
 }
