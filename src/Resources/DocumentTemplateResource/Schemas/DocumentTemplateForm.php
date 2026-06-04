@@ -59,7 +59,8 @@ class DocumentTemplateForm
                                 'margin_bottom' => config('filament-document-builder.default_margins.bottom', '16'),
                                 'margin_header' => config('filament-document-builder.default_margins.header', '9'),
                                 'margin_footer' => config('filament-document-builder.default_margins.footer', '9'),
-                            ]),
+                            ])
+                            ->live(),
                         Forms\Components\Repeater::make('extra_data_sources')
                             ->label(__('filament-document-builder::document-builder.labels.additional_data_sources'))
                             ->schema([
@@ -111,6 +112,7 @@ class DocumentTemplateForm
                             ->fileAttachmentsDisk('public')
                             ->fileAttachmentsDirectory('document-templates')
                             ->profile('full')
+                            ->key(fn (\Filament\Schemas\Components\Utilities\Get $get) => 'tinymce-' . md5(json_encode($get('extra_data_sources')) . $get('model_class') . $get('type') . json_encode($get('page_settings'))))
                             ->setCustomConfigs(function (\Filament\Schemas\Components\Utilities\Get $get) {
                                 $vars = [];
                                 $modelClass = $get('model_class');
@@ -168,11 +170,39 @@ class DocumentTemplateForm
                                 
                                 sort($vars);
 
+                                $settings = $get('page_settings') ?? [];
+                                $format = $settings['format'] ?? 'a4';
+                                $orientation = $settings['orientation'] ?? 'portrait';
+                                $marginTop = $settings['margin_top'] ?? '16';
+                                $marginBottom = $settings['margin_bottom'] ?? '16';
+                                $marginLeft = $settings['margin_left'] ?? '15';
+                                $marginRight = $settings['margin_right'] ?? '15';
+                                
+                                $sizes = [
+                                    'a3' => ['width' => 297, 'height' => 420],
+                                    'a4' => ['width' => 210, 'height' => 297],
+                                    'a5' => ['width' => 148, 'height' => 210],
+                                    'letter' => ['width' => 215.9, 'height' => 279.4],
+                                    'legal' => ['width' => 215.9, 'height' => 355.6],
+                                ];
+                                
+                                $dimensions = $sizes[strtolower($format)] ?? $sizes['a4'];
+                                $width = $orientation === 'landscape' ? $dimensions['height'] : $dimensions['width'];
+                                $minHeight = $orientation === 'landscape' ? $dimensions['width'] : $dimensions['height'];
+                                
+                                $contentStyle = '@import url("https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Moul&family=Siemreap&display=swap"); ' .
+                                    'html { background: #f3f4f6; padding: 20px 0; } ' .
+                                    'body { font-family: Calibri, "Battambang", Arial, sans-serif; background: #fff; ' .
+                                    'width: ' . $width . 'mm; min-height: ' . $minHeight . 'mm; ' .
+                                    'padding: ' . $marginTop . 'mm ' . $marginRight . 'mm ' . $marginBottom . 'mm ' . $marginLeft . 'mm !important; ' .
+                                    'margin: 0 auto !important; box-shadow: 0 0 10px rgba(0,0,0,0.1); box-sizing: border-box; } ' .
+                                    'p { margin-top: 0; }';
+
                                 return [
                                     'document_variables' => $vars,
                                     'menubar' => 'file edit view insert format tools table help',
                                     'font_family_formats' => 'Arial=arial,helvetica,sans-serif; Calibri=calibri,sans-serif; Times New Roman="times new roman",times,serif; Khmer Battambang=Battambang,sans-serif; Khmer Moul Light="Khmer OS Muol Light",Moul,cursive; Khmer Siemreap=Siemreap,sans-serif;',
-                                    'content_style' => '@import url("https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Moul&family=Siemreap&display=swap"); html { background: #f3f4f6; padding: 20px 0; } body { font-family: Calibri, "Battambang", Arial, sans-serif; background: #fff; width: 210mm; min-height: 297mm; padding: 10mm 15mm !important; margin: 0 auto !important; box-shadow: 0 0 10px rgba(0,0,0,0.1); box-sizing: border-box; } p { margin-top: 0; }',
+                                    'content_style' => $contentStyle,
                                     'plugins' => 'custom_shapes accordion autoresize codesample directionality advlist autolink link image lists charmap anchor pagebreak searchreplace wordcount visualblocks visualchars code fullscreen insertdatetime media table emoticons help template',
                                     'toolbar' => 'undo redo removeformat | fontfamily fontsize fontsizeinput font_size_formats styles | bold italic underline | rtl ltr | alignjustify alignright aligncenter alignleft | numlist bullist outdent indent accordion | forecolor backcolor | blockquote table toc hr | image link anchor media codesample emoticons template insert_variable | visualblocks print wordcount fullscreen help',
                                     'templates' => [

@@ -216,7 +216,7 @@ class DocumentRenderer
             'settings' => $template->page_settings,
         ])->render();
 
-        $format = data_get($template->page_settings, 'format', 'a4');
+        $format = strtoupper(data_get($template->page_settings, 'format', 'a4'));
         $orientation = data_get($template->page_settings, 'orientation', 'portrait');
         
         $pdfConfig = [

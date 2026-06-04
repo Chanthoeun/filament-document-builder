@@ -188,6 +188,15 @@ protected function getHeaderActions(): array
 
 ---
 
+## Changelog
+
+### v1.0.14
+- **Bug Fix**: Fixed an issue where the TinyMCE editor did not dynamically resize based on the live `page_settings` configuration.
+- **Bug Fix**: Bypassed Filament TinyEditor's `wire:ignore` caching to ensure that the "Insert Variable" dropdown accurately populates when `extra_data_sources` are modified without requiring a page refresh.
+- **Improvement**: Set `format` to uppercase prior to sending it to mPDF to ensure strict compatibility.
+
+---
+
 ## License
 
 The MIT License (MIT).

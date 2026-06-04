@@ -49,6 +49,7 @@ class EditDocumentTemplate extends EditRecord
                 ->color('success')
                 ->action(function () {
                     $record = $this->record;
+                    $record->fill($this->form->getState());
 
                     if (empty($record->model_class)) {
                         \Filament\Notifications\Notification::make()
