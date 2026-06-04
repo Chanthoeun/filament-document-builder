@@ -207,6 +207,11 @@ class DocumentTemplateForm
                                     'toolbar' => 'undo redo removeformat | fontfamily fontsize fontsizeinput font_size_formats styles | bold italic underline | rtl ltr | alignjustify alignright aligncenter alignleft | numlist bullist outdent indent accordion | forecolor backcolor | blockquote table toc hr | image link anchor media codesample emoticons template insert_variable | visualblocks print wordcount fullscreen help',
                                     'templates' => [
                                         [
+                                            'title' => 'Layout - 1 Column',
+                                            'description' => 'A table with 1 column taking full width',
+                                            'content' => '<table style="width: 100%; border-collapse: collapse; border: none;"><tbody><tr><td style="width: 100%; padding: 5px; vertical-align: top; border: none;">Column 1</td></tr></tbody></table><p><br></p>'
+                                        ],
+                                        [
                                             'title' => 'Layout - 2 Columns',
                                             'description' => 'A table with 2 equal columns',
                                             'content' => '<table style="width: 100%; border-collapse: collapse; border: none;"><tbody><tr><td style="width: 50%; padding: 5px; vertical-align: top; border: none;">Column 1</td><td style="width: 50%; padding: 5px; vertical-align: top; border: none;">Column 2</td></tr></tbody></table><p><br></p>'
