@@ -59,9 +59,9 @@ class DocumentRenderer
             return $content;
         }
 
-        // Use a non-greedy match to prevent catastrophic backtracking on large documents
+        // Use precise regex to prevent catastrophic backtracking and avoid swallowing preceding tags
         return preg_replace_callback(
-            '/{{.*?#foreach\s+(.*?)\s+as\s+(.*?).*?}}(.*?){{.*?\/foreach.*?}}/is',
+            '/{{\s*#foreach\s+([a-zA-Z0-9_\.]+)\s+as\s+([a-zA-Z0-9_]+)\s*}}(.*?){{\s*\/foreach\s*}}/is',
             function ($matches) use ($data) {
                 $arrayPath = trim(strip_tags($matches[1]));
                 $arrayPath = html_entity_decode(str_replace('&nbsp;', '', $arrayPath));
@@ -245,8 +245,40 @@ class DocumentRenderer
 
     public function renderMultiple(DocumentTemplate $template, iterable $records)
     {
+        $htmlContent = $template->content ?? '';
+        
+        // Convert to Eloquent Collection to enable bulk relation loading
+        $eloquentCollection = new \Illuminate\Database\Eloquent\Collection($records);
+        $firstRecord = $eloquentCollection->first();
+
+        // Bulk load relations for the entire collection to prevent N+1 queries
+        if ($firstRecord instanceof \Illuminate\Database\Eloquent\Model) {
+            preg_match_all('/{{\s*(?:#foreach\s+)?([a-zA-Z0-9_\.]+)/', $htmlContent, $matches);
+            
+            $relationsToLoad = [];
+            foreach ($matches[1] as $match) {
+                $parts = explode('.', $match);
+                if (count($parts) > 1) {
+                    array_pop($parts);
+                    $relationsToLoad[] = implode('.', $parts);
+                }
+            }
+            
+            if (!empty($relationsToLoad)) {
+                $validRelations = [];
+                foreach (array_unique($relationsToLoad) as $rel) {
+                    if (method_exists($firstRecord, explode('.', $rel)[0])) {
+                        $validRelations[] = $rel;
+                    }
+                }
+                if (!empty($validRelations)) {
+                    $eloquentCollection->loadMissing($validRelations);
+                }
+            }
+        }
+
         $htmlContents = [];
-        foreach ($records as $record) {
+        foreach ($eloquentCollection as $record) {
             $htmlContents[] = $this->processHtmlContent($template, $record);
         }
 
