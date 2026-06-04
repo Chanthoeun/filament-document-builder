@@ -131,6 +131,29 @@ Switch your TinyMCE editor to **Source Code (`<>`)** view and wrap your repeatin
 - You can access properties of each item using the prefix you define (e.g., `item.`).
 - **Bonus:** Inside the loop, you still have full access to global variables from the parent record!
 
+#### Handling Calculations (e.g., Invoices)
+The document rendering engine intentionally avoids executing arbitrary PHP code within the template for security and performance reasons. Therefore, you cannot perform inline math like `{{ item.qty * item.price }}` inside the TinyMCE editor.
+
+To handle calculations such as line totals, taxes, or grand totals, you should use **Laravel Eloquent Accessors** directly on your models. 
+
+**Example (Line Item Total):**
+On your `InvoiceItem` model, add an accessor:
+```php
+public function getTotalAttribute() {
+    return $this->qty * $this->price;
+}
+```
+Now, you can simply use `{{ item.total }}` inside your `{{#foreach}}` loop!
+
+**Example (Invoice Grand Total):**
+On your parent `Invoice` model:
+```php
+public function getGrandTotalAttribute() {
+    return $this->items->sum('total') + $this->tax_amount;
+}
+```
+Then, anywhere in your document, you can output the grand total using `{{ grand_total }}`.
+
 ### 3. Additional Data Sources (Multi-Model Support)
 If your document requires data from multiple independent models (e.g., a student application form that needs global `SchoolSettings` or a specific `Principal` user), you can map them entirely through the UI without touching any code!
 
