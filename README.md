@@ -30,8 +30,12 @@ It is designed to easily integrate with standalone Filament panels or with other
 composer require chanthoeun/filament-document-builder
 ```
 
-### 3. Run Migrations
-You must run the migrations to create the `document_templates` table:
+### 3. Publish & Run Migrations
+You can publish the migration file to customize the table prefix or structure before running it:
+```bash
+php artisan vendor:publish --tag="filament-document-builder-migrations"
+```
+After publishing, run the migrations to create the `document_templates` table:
 ```bash
 php artisan migrate
 ```
