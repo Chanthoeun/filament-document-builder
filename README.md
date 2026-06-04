@@ -190,10 +190,52 @@ protected function getHeaderActions(): array
 
 ## Changelog
 
-### v1.0.14
+### v1.0.15
 - **Bug Fix**: Fixed an issue where the TinyMCE editor did not dynamically resize based on the live `page_settings` configuration.
 - **Bug Fix**: Bypassed Filament TinyEditor's `wire:ignore` caching to ensure that the "Insert Variable" dropdown accurately populates when `extra_data_sources` are modified without requiring a page refresh.
 - **Improvement**: Set `format` to uppercase prior to sending it to mPDF to ensure strict compatibility.
+
+### v1.0.13
+- Update README with migration publishing instructions
+
+### v1.0.12
+- Hide label and remove required validation from content editor
+
+### v1.0.11
+- Add navigationSort to allow changing menu order
+
+### v1.0.10
+- Rename data method to recordData to avoid conflict with Filament Actions
+
+### v1.0.9
+- Fix namespace for Action inheritance
+
+### v1.0.8
+- Update README with new action instructions
+
+### v1.0.7
+- Create reusable PDF action classes
+
+### v1.0.6
+- Add renderMultiple to support bulk PDF generation
+
+### v1.0.5
+- Fix variable extraction to use CustomFormField model
+
+### v1.0.4
+- Fix Array to string conversion
+
+### v1.0.3
+- Fix Action namespace for Filament v4/v5 compatibility
+
+### v1.0.2
+- Add publish resource command and improve custom forms integration
+
+### v1.0.1
+- Fix Filament v4 Action namespaces
+
+### v1.0.0
+- Update composer.json keywords and prepare for Packagist release
 
 ---
 
