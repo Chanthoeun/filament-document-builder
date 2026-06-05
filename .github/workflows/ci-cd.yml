@@ -53,6 +53,7 @@ jobs:
 
       - name: Install dependencies
         run: |
+          jq 'del(.repositories)' composer.json > composer.tmp.json && mv composer.tmp.json composer.json
           composer config policy.advisories.block false
           composer require "illuminate/contracts:${{ matrix.laravel }}" --no-update
           composer require "orchestra/testbench:${{ matrix.testbench }}" --dev --no-update
