@@ -3,8 +3,9 @@
 namespace Chanthoeun\FilamentDocumentBuilder\Services;
 
 use Chanthoeun\FilamentDocumentBuilder\Models\DocumentTemplate;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
 use Mccarlosen\LaravelMpdf\Facades\LaravelMpdf as Pdf;
-use Illuminate\Support\Str;
 
 class DocumentRenderer
 {
@@ -18,13 +19,13 @@ class DocumentRenderer
      */
     protected function preloadRelations(?string $content, array|object $data): void
     {
-        if (empty($content) || !($data instanceof \Illuminate\Database\Eloquent\Model)) {
+        if (empty($content) || ! ($data instanceof Model)) {
             return;
         }
 
         // Find all {{ variable.nested }} or {{#foreach variable.nested as ...}}
         preg_match_all('/{{\s*(?:#foreach\s+)?([a-zA-Z0-9_\.]+)/', $content, $matches);
-        
+
         $relationsToLoad = [];
         foreach ($matches[1] as $match) {
             $parts = explode('.', $match);
@@ -36,7 +37,7 @@ class DocumentRenderer
             }
         }
 
-        if (!empty($relationsToLoad)) {
+        if (! empty($relationsToLoad)) {
             // Only load relations that actually exist on the model to avoid exceptions
             $validRelations = [];
             foreach (array_unique($relationsToLoad) as $rel) {
@@ -44,7 +45,7 @@ class DocumentRenderer
                     $validRelations[] = $rel;
                 }
             }
-            if (!empty($validRelations)) {
+            if (! empty($validRelations)) {
                 $data->loadMissing($validRelations);
             }
         }
@@ -65,33 +66,33 @@ class DocumentRenderer
             function ($matches) use ($data) {
                 $arrayPath = trim(strip_tags($matches[1]));
                 $arrayPath = html_entity_decode(str_replace('&nbsp;', '', $arrayPath));
-                
+
                 $itemName = trim(strip_tags($matches[2]));
                 $itemName = html_entity_decode(str_replace('&nbsp;', '', $itemName));
-                
+
                 $blockContent = $matches[3];
 
                 $items = data_get($data, $arrayPath);
-                
+
                 // Fallback for parent scopes
                 $currentContext = $data;
                 while ($items === null && is_array($currentContext) && array_key_exists('_parent', $currentContext)) {
                     $currentContext = $currentContext['_parent'];
                     $items = data_get($currentContext, $arrayPath);
                 }
-                
-                if (!is_iterable($items)) {
+
+                if (! is_iterable($items)) {
                     return '';
                 }
 
                 $result = '';
-                
+
                 foreach ($items as $item) {
                     $loopData = [
                         '_parent' => $data,
                         $itemName => $item,
                     ];
-                    
+
                     $result .= $this->replaceVariables($blockContent, $loopData);
                 }
 
@@ -115,13 +116,13 @@ class DocumentRenderer
             $key = trim(strip_tags($matches[1]));
             $key = html_entity_decode(str_replace('&nbsp;', '', $key));
             $key = trim($key);
-            
+
             if (str_starts_with($key, '#foreach') || str_starts_with($key, '/foreach')) {
                 return $matches[0];
             }
-            
+
             $value = data_get($data, $key);
-            
+
             $currentContext = $data;
             while ($value === null && is_array($currentContext) && array_key_exists('_parent', $currentContext)) {
                 $currentContext = $currentContext['_parent'];
@@ -134,6 +135,7 @@ class DocumentRenderer
             if (is_array($value) || is_object($value)) {
                 return ''; // Ignore array printing rather than crashing mPDF
             }
+
             return $value;
         }, $content);
     }
@@ -141,35 +143,35 @@ class DocumentRenderer
     protected function processHtmlContent(DocumentTemplate $template, array|object $data = []): string
     {
         $htmlContent = $template->content ?? '';
-        
+
         // Eager load relations to prevent N+1 performance bottlenecks
         $this->preloadRelations($htmlContent, $data);
-        
+
         // Fetch extra data sources defined in the template (Cached statically)
         $extraData = [];
-        if (!empty($template->extra_data_sources)) {
+        if (! empty($template->extra_data_sources)) {
             foreach ($template->extra_data_sources as $source) {
-                if (!empty($source['variable_name']) && !empty($source['model_class']) && class_exists($source['model_class'])) {
+                if (! empty($source['variable_name']) && ! empty($source['model_class']) && class_exists($source['model_class'])) {
                     $method = $source['retrieval_method'] ?? 'first';
-                    $cacheKey = md5($source['model_class'] . '_' . $method);
-                    
-                    if (!isset(self::$extraDataCache[$cacheKey])) {
+                    $cacheKey = md5($source['model_class'].'_'.$method);
+
+                    if (! isset(self::$extraDataCache[$cacheKey])) {
                         if ($method === 'latest') {
                             self::$extraDataCache[$cacheKey] = $source['model_class']::latest()->first();
                         } else {
                             self::$extraDataCache[$cacheKey] = $source['model_class']::first();
                         }
                     }
-                    
+
                     $extraData[$source['variable_name']] = self::$extraDataCache[$cacheKey];
                 }
             }
         }
 
-        if (!empty($extraData)) {
+        if (! empty($extraData)) {
             $data = array_merge(['_parent' => $data], $extraData);
         }
-        
+
         $htmlContent = $this->replaceLoops($htmlContent, $data);
         $htmlContent = $this->replaceVariables($htmlContent, $data);
 
@@ -177,16 +179,18 @@ class DocumentRenderer
         $htmlContent = preg_replace('/display:\s*inline-flex;?/', 'display: inline-block;', $htmlContent);
         $htmlContent = preg_replace('/align-items:\s*center;?/', 'vertical-align: middle;', $htmlContent);
         $htmlContent = preg_replace('/justify-content:\s*center;?/', 'text-align: center;', $htmlContent);
-        
+
         $htmlContent = preg_replace_callback(
             '/<div[^>]*style="([^"]*height:\s*(\d+px)[^"]*)"[^>]*>/i',
             function ($matches) {
                 $style = $matches[1];
                 $height = $matches[2];
                 if (strpos($style, 'line-height') === false) {
-                    $newStyle = $style . ' line-height: ' . $height . ';';
+                    $newStyle = $style.' line-height: '.$height.';';
+
                     return str_replace($style, $newStyle, $matches[0]);
                 }
+
                 return $matches[0];
             },
             $htmlContent
@@ -196,13 +200,13 @@ class DocumentRenderer
         $htmlContent = preg_replace('/@import\s+url\([\'"]?https:\/\/fonts\.googleapis\.com.*?[\'"]?\);?/i', '', $htmlContent);
 
         $appUrl = config('app.url');
-        if (!str_ends_with($appUrl, '/')) {
+        if (! str_ends_with($appUrl, '/')) {
             $appUrl .= '/';
         }
-        
+
         $htmlContent = preg_replace(
-            '/src=["\'](' . preg_quote($appUrl, '/') . ')?storage\/(.*?)["\']/i',
-            'src="' . public_path('storage/$2') . '"',
+            '/src=["\']('.preg_quote($appUrl, '/').')?storage\/(.*?)["\']/i',
+            'src="'.public_path('storage/$2').'"',
             $htmlContent
         );
 
@@ -218,7 +222,7 @@ class DocumentRenderer
 
         $format = strtoupper(data_get($template->page_settings, 'format', 'a4'));
         $orientation = data_get($template->page_settings, 'orientation', 'portrait');
-        
+
         $pdfConfig = [
             'format' => $format,
             'orientation' => $orientation === 'landscape' ? 'L' : 'P',
@@ -228,7 +232,7 @@ class DocumentRenderer
 
         if (is_array($template->page_settings)) {
             foreach ($template->page_settings as $key => $value) {
-                if (!in_array($key, ['format', 'orientation']) && $value !== null && $value !== '') {
+                if (! in_array($key, ['format', 'orientation']) && $value !== null && $value !== '') {
                     $pdfConfig[$key] = is_numeric($value) ? (float) $value : $value;
                 }
             }
@@ -240,21 +244,22 @@ class DocumentRenderer
     public function render(DocumentTemplate $template, array|object $data = [])
     {
         $htmlContent = $this->processHtmlContent($template, $data);
+
         return $this->generatePdfFromHtml($template, $htmlContent);
     }
 
     public function renderMultiple(DocumentTemplate $template, iterable $records)
     {
         $htmlContent = $template->content ?? '';
-        
+
         // Convert to Eloquent Collection to enable bulk relation loading
-        $eloquentCollection = new \Illuminate\Database\Eloquent\Collection($records);
+        $eloquentCollection = new Collection($records);
         $firstRecord = $eloquentCollection->first();
 
         // Bulk load relations for the entire collection to prevent N+1 queries
-        if ($firstRecord instanceof \Illuminate\Database\Eloquent\Model) {
+        if ($firstRecord instanceof Model) {
             preg_match_all('/{{\s*(?:#foreach\s+)?([a-zA-Z0-9_\.]+)/', $htmlContent, $matches);
-            
+
             $relationsToLoad = [];
             foreach ($matches[1] as $match) {
                 $parts = explode('.', $match);
@@ -263,15 +268,15 @@ class DocumentRenderer
                     $relationsToLoad[] = implode('.', $parts);
                 }
             }
-            
-            if (!empty($relationsToLoad)) {
+
+            if (! empty($relationsToLoad)) {
                 $validRelations = [];
                 foreach (array_unique($relationsToLoad) as $rel) {
                     if (method_exists($firstRecord, explode('.', $rel)[0])) {
                         $validRelations[] = $rel;
                     }
                 }
-                if (!empty($validRelations)) {
+                if (! empty($validRelations)) {
                     $eloquentCollection->loadMissing($validRelations);
                 }
             }
@@ -284,7 +289,7 @@ class DocumentRenderer
 
         // Join multiple records with a pagebreak
         $combinedHtml = implode('<pagebreak />', $htmlContents);
-        
+
         return $this->generatePdfFromHtml($template, $combinedHtml);
     }
 }

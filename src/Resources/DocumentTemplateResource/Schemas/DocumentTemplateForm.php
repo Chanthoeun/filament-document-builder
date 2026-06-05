@@ -2,7 +2,14 @@
 
 namespace Chanthoeun\FilamentDocumentBuilder\Resources\DocumentTemplateResource\Schemas;
 
+use AmidEsfahani\FilamentTinyEditor\TinyEditor;
+use Chanthoeun\FilamentCustomForms\Models\CustomForm;
+use Chanthoeun\FilamentCustomForms\Models\CustomFormEntry;
 use Filament\Forms;
+use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Wizard;
+use Filament\Schemas\Components\Wizard\Step;
 use Filament\Schemas\Schema;
 
 class DocumentTemplateForm
@@ -11,9 +18,9 @@ class DocumentTemplateForm
     {
         return $schema
             ->schema([
-                \Filament\Schemas\Components\Wizard::make([
-                    \Filament\Schemas\Components\Wizard\Step::make(__('filament-document-builder::document-builder.labels.template_details'))->schema([
-                        \Filament\Schemas\Components\Grid::make(3)->schema([
+                Wizard::make([
+                    Step::make(__('filament-document-builder::document-builder.labels.template_details'))->schema([
+                        Grid::make(3)->schema([
                             Forms\Components\TextInput::make('name')
                                 ->label(__('filament-document-builder::document-builder.labels.template_name'))
                                 ->required()
@@ -30,16 +37,17 @@ class DocumentTemplateForm
                                     if (is_dir($path)) {
                                         foreach (scandir($path) as $file) {
                                             if (pathinfo($file, PATHINFO_EXTENSION) === 'php') {
-                                                $class = 'App\\Models\\' . pathinfo($file, PATHINFO_FILENAME);
+                                                $class = 'App\\Models\\'.pathinfo($file, PATHINFO_FILENAME);
                                                 if (class_exists($class)) {
                                                     $models[$class] = class_basename($class);
                                                 }
                                             }
                                         }
                                     }
-                                    if (class_exists(\Chanthoeun\FilamentCustomForms\Models\CustomFormEntry::class)) {
-                                        $models[\Chanthoeun\FilamentCustomForms\Models\CustomFormEntry::class] = 'Custom Form Entry';
+                                    if (class_exists(CustomFormEntry::class)) {
+                                        $models[CustomFormEntry::class] = 'Custom Form Entry';
                                     }
+
                                     return $models;
                                 })
                                 ->live()
@@ -77,16 +85,17 @@ class DocumentTemplateForm
                                         if (is_dir($path)) {
                                             foreach (scandir($path) as $file) {
                                                 if (pathinfo($file, PATHINFO_EXTENSION) === 'php') {
-                                                    $class = 'App\\Models\\' . pathinfo($file, PATHINFO_FILENAME);
+                                                    $class = 'App\\Models\\'.pathinfo($file, PATHINFO_FILENAME);
                                                     if (class_exists($class)) {
                                                         $models[$class] = class_basename($class);
                                                     }
                                                 }
                                             }
                                         }
-                                        if (class_exists(\Chanthoeun\FilamentCustomForms\Models\CustomFormEntry::class)) {
-                                            $models[\Chanthoeun\FilamentCustomForms\Models\CustomFormEntry::class] = 'Custom Form Entry';
+                                        if (class_exists(CustomFormEntry::class)) {
+                                            $models[CustomFormEntry::class] = 'Custom Form Entry';
                                         }
+
                                         return $models;
                                     })
                                     ->searchable(),
@@ -103,8 +112,8 @@ class DocumentTemplateForm
                             ->live()
                             ->itemLabel(fn (array $state): ?string => $state['variable_name'] ?? null),
                     ]),
-                    \Filament\Schemas\Components\Wizard\Step::make(__('filament-document-builder::document-builder.labels.document_designer'))->schema([
-                        \AmidEsfahani\FilamentTinyEditor\TinyEditor::make('content')
+                    Step::make(__('filament-document-builder::document-builder.labels.document_designer'))->schema([
+                        TinyEditor::make('content')
                             ->label(__('filament-document-builder::document-builder.labels.document_designer'))
                             ->hiddenLabel()
                             ->required(false)
@@ -112,8 +121,8 @@ class DocumentTemplateForm
                             ->fileAttachmentsDisk('public')
                             ->fileAttachmentsDirectory('document-templates')
                             ->profile('full')
-                            ->key(fn (\Filament\Schemas\Components\Utilities\Get $get) => 'tinymce-' . md5(json_encode($get('extra_data_sources')) . $get('model_class') . $get('type') . json_encode($get('page_settings'))))
-                            ->setCustomConfigs(function (\Filament\Schemas\Components\Utilities\Get $get) {
+                            ->key(fn (Get $get) => 'tinymce-'.md5(json_encode($get('extra_data_sources')).$get('model_class').$get('type').json_encode($get('page_settings'))))
+                            ->setCustomConfigs(function (Get $get) {
                                 $vars = [];
                                 $modelClass = $get('model_class');
                                 if ($modelClass && class_exists($modelClass)) {
@@ -121,28 +130,28 @@ class DocumentTemplateForm
                                     $vars = array_merge(['id', 'created_at', 'updated_at'], $model->getFillable());
 
                                     $type = $get('type');
-                                    if ($modelClass === \Chanthoeun\FilamentCustomForms\Models\CustomFormEntry::class && $type && str_starts_with($type, 'custom_form_')) {
+                                    if ($modelClass === CustomFormEntry::class && $type && str_starts_with($type, 'custom_form_')) {
                                         $formId = str_replace('custom_form_', '', $type);
-                                        $customForm = \Chanthoeun\FilamentCustomForms\Models\CustomForm::find($formId);
+                                        $customForm = CustomForm::find($formId);
                                         if ($customForm) {
                                             $customFields = [];
                                             if ($customForm->fields()->count() > 0) {
                                                 foreach ($customForm->fields as $field) {
-                                                    if (!in_array($field->type, ['section', 'grid', 'fieldset', 'wizard']) && !empty($field->name)) {
-                                                        $customFields[] = 'data.' . $field->name;
+                                                    if (! in_array($field->type, ['section', 'grid', 'fieldset', 'wizard']) && ! empty($field->name)) {
+                                                        $customFields[] = 'data.'.$field->name;
                                                     }
                                                 }
                                             } elseif (is_array($customForm->schema)) {
-                                                $extractFields = function($schema) use (&$extractFields, &$customFields) {
+                                                $extractFields = function ($schema) use (&$extractFields, &$customFields) {
                                                     foreach ($schema as $block) {
                                                         $bType = $block['type'] ?? null;
                                                         $data = $block['data'] ?? [];
                                                         if (in_array($bType, ['section', 'grid', 'fieldset', 'repeater'])) {
-                                                            if (!empty($data['schema'])) {
+                                                            if (! empty($data['schema'])) {
                                                                 $extractFields($data['schema']);
                                                             }
-                                                        } elseif (!empty($data['name'])) {
-                                                            $customFields[] = 'data.' . $data['name'];
+                                                        } elseif (! empty($data['name'])) {
+                                                            $customFields[] = 'data.'.$data['name'];
                                                         }
                                                     }
                                                 };
@@ -155,19 +164,19 @@ class DocumentTemplateForm
 
                                 $extraSources = $get('extra_data_sources') ?? [];
                                 foreach ($extraSources as $source) {
-                                    if (!empty($source['variable_name'])) {
+                                    if (! empty($source['variable_name'])) {
                                         $vars[] = $source['variable_name'];
-                                        
-                                        if (!empty($source['model_class']) && class_exists($source['model_class'])) {
+
+                                        if (! empty($source['model_class']) && class_exists($source['model_class'])) {
                                             $extraModel = new $source['model_class'];
                                             $fields = array_merge(['id', 'created_at', 'updated_at'], $extraModel->getFillable());
                                             foreach ($fields as $field) {
-                                                $vars[] = $source['variable_name'] . '.' . $field;
+                                                $vars[] = $source['variable_name'].'.'.$field;
                                             }
                                         }
                                     }
                                 }
-                                
+
                                 sort($vars);
 
                                 $settings = $get('page_settings') ?? [];
@@ -177,7 +186,7 @@ class DocumentTemplateForm
                                 $marginBottom = $settings['margin_bottom'] ?? '16';
                                 $marginLeft = $settings['margin_left'] ?? '15';
                                 $marginRight = $settings['margin_right'] ?? '15';
-                                
+
                                 $sizes = [
                                     'a3' => ['width' => 297, 'height' => 420],
                                     'a4' => ['width' => 210, 'height' => 297],
@@ -185,17 +194,17 @@ class DocumentTemplateForm
                                     'letter' => ['width' => 215.9, 'height' => 279.4],
                                     'legal' => ['width' => 215.9, 'height' => 355.6],
                                 ];
-                                
+
                                 $dimensions = $sizes[strtolower($format)] ?? $sizes['a4'];
                                 $width = $orientation === 'landscape' ? $dimensions['height'] : $dimensions['width'];
                                 $minHeight = $orientation === 'landscape' ? $dimensions['width'] : $dimensions['height'];
-                                
-                                $contentStyle = '@import url("https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Moul&family=Siemreap&display=swap"); ' .
-                                    'html { background: #f3f4f6; padding: 20px 0; } ' .
-                                    'body { font-family: Calibri, "Battambang", Arial, sans-serif; background: #fff; ' .
-                                    'width: ' . $width . 'mm; min-height: ' . $minHeight . 'mm; ' .
-                                    'padding: ' . $marginTop . 'mm ' . $marginRight . 'mm ' . $marginBottom . 'mm ' . $marginLeft . 'mm !important; ' .
-                                    'margin: 0 auto !important; box-shadow: 0 0 10px rgba(0,0,0,0.1); box-sizing: border-box; } ' .
+
+                                $contentStyle = '@import url("https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Moul&family=Siemreap&display=swap"); '.
+                                    'html { background: #f3f4f6; padding: 20px 0; } '.
+                                    'body { font-family: Calibri, "Battambang", Arial, sans-serif; background: #fff; '.
+                                    'width: '.$width.'mm; min-height: '.$minHeight.'mm; '.
+                                    'padding: '.$marginTop.'mm '.$marginRight.'mm '.$marginBottom.'mm '.$marginLeft.'mm !important; '.
+                                    'margin: 0 auto !important; box-shadow: 0 0 10px rgba(0,0,0,0.1); box-sizing: border-box; } '.
                                     'p { margin-top: 0; }';
 
                                 return [
@@ -209,93 +218,93 @@ class DocumentTemplateForm
                                         [
                                             'title' => 'Layout - 1 Column',
                                             'description' => 'A table with 1 column taking full width',
-                                            'content' => '<table style="width: 100%; border-collapse: collapse; border: none;"><tbody><tr><td style="width: 100%; padding: 5px; vertical-align: top; border: none;">Column 1</td></tr></tbody></table><p><br></p>'
+                                            'content' => '<table style="width: 100%; border-collapse: collapse; border: none;"><tbody><tr><td style="width: 100%; padding: 5px; vertical-align: top; border: none;">Column 1</td></tr></tbody></table><p><br></p>',
                                         ],
                                         [
                                             'title' => 'Layout - 2 Columns',
                                             'description' => 'A table with 2 equal columns',
-                                            'content' => '<table style="width: 100%; border-collapse: collapse; border: none;"><tbody><tr><td style="width: 50%; padding: 5px; vertical-align: top; border: none;">Column 1</td><td style="width: 50%; padding: 5px; vertical-align: top; border: none;">Column 2</td></tr></tbody></table><p><br></p>'
+                                            'content' => '<table style="width: 100%; border-collapse: collapse; border: none;"><tbody><tr><td style="width: 50%; padding: 5px; vertical-align: top; border: none;">Column 1</td><td style="width: 50%; padding: 5px; vertical-align: top; border: none;">Column 2</td></tr></tbody></table><p><br></p>',
                                         ],
                                         [
                                             'title' => 'Layout - 3 Columns',
                                             'description' => 'A table with 3 equal columns',
-                                            'content' => '<table style="width: 100%; border-collapse: collapse; border: none;"><tbody><tr><td style="width: 33.33%; padding: 5px; vertical-align: top; border: none;">Column 1</td><td style="width: 33.33%; padding: 5px; vertical-align: top; border: none;">Column 2</td><td style="width: 33.33%; padding: 5px; vertical-align: top; border: none;">Column 3</td></tr></tbody></table><p><br></p>'
+                                            'content' => '<table style="width: 100%; border-collapse: collapse; border: none;"><tbody><tr><td style="width: 33.33%; padding: 5px; vertical-align: top; border: none;">Column 1</td><td style="width: 33.33%; padding: 5px; vertical-align: top; border: none;">Column 2</td><td style="width: 33.33%; padding: 5px; vertical-align: top; border: none;">Column 3</td></tr></tbody></table><p><br></p>',
                                         ],
                                         [
                                             'title' => 'Layout - 4 Columns',
                                             'description' => 'A table with 4 equal columns',
-                                            'content' => '<table style="width: 100%; border-collapse: collapse; border: none;"><tbody><tr><td style="width: 25%; padding: 5px; vertical-align: top; border: none;">Column 1</td><td style="width: 25%; padding: 5px; vertical-align: top; border: none;">Column 2</td><td style="width: 25%; padding: 5px; vertical-align: top; border: none;">Column 3</td><td style="width: 25%; padding: 5px; vertical-align: top; border: none;">Column 4</td></tr></tbody></table><p><br></p>'
+                                            'content' => '<table style="width: 100%; border-collapse: collapse; border: none;"><tbody><tr><td style="width: 25%; padding: 5px; vertical-align: top; border: none;">Column 1</td><td style="width: 25%; padding: 5px; vertical-align: top; border: none;">Column 2</td><td style="width: 25%; padding: 5px; vertical-align: top; border: none;">Column 3</td><td style="width: 25%; padding: 5px; vertical-align: top; border: none;">Column 4</td></tr></tbody></table><p><br></p>',
                                         ],
                                         [
                                             'title' => 'Layout - 1/3 Left, 2/3 Right',
                                             'description' => '2 Columns: smaller left, larger right',
-                                            'content' => '<table style="width: 100%; border-collapse: collapse; border: none;"><tbody><tr><td style="width: 33.33%; padding: 5px; vertical-align: top; border: none;">Left Sidebar</td><td style="width: 66.66%; padding: 5px; vertical-align: top; border: none;">Main Content</td></tr></tbody></table><p><br></p>'
+                                            'content' => '<table style="width: 100%; border-collapse: collapse; border: none;"><tbody><tr><td style="width: 33.33%; padding: 5px; vertical-align: top; border: none;">Left Sidebar</td><td style="width: 66.66%; padding: 5px; vertical-align: top; border: none;">Main Content</td></tr></tbody></table><p><br></p>',
                                         ],
                                         [
                                             'title' => 'Layout - 2/3 Left, 1/3 Right',
                                             'description' => '2 Columns: larger left, smaller right',
-                                            'content' => '<table style="width: 100%; border-collapse: collapse; border: none;"><tbody><tr><td style="width: 66.66%; padding: 5px; vertical-align: top; border: none;">Main Content</td><td style="width: 33.33%; padding: 5px; vertical-align: top; border: none;">Right Sidebar</td></tr></tbody></table><p><br></p>'
+                                            'content' => '<table style="width: 100%; border-collapse: collapse; border: none;"><tbody><tr><td style="width: 66.66%; padding: 5px; vertical-align: top; border: none;">Main Content</td><td style="width: 33.33%; padding: 5px; vertical-align: top; border: none;">Right Sidebar</td></tr></tbody></table><p><br></p>',
                                         ],
                                         [
                                             'title' => 'Header - Logo & Title',
                                             'description' => 'A professional document header',
-                                            'content' => '<table style="width: 100%; border-collapse: collapse; border-bottom: 2px solid #000; margin-bottom: 20px;"><tbody><tr><td style="width: 20%; padding: 10px; vertical-align: middle; border: none;"><div style="display: inline-block; width: 80px; height: 80px; border: 1px solid #000; border-radius: 50%; text-align: center; line-height: 80px;">LOGO</div></td><td style="width: 80%; padding: 10px; vertical-align: middle; text-align: right; border: none;"><h2 style="margin: 0;">COMPANY NAME</h2><p style="margin: 0; color: #555;">Company Address &bull; Contact Info &bull; Email</p></td></tr></tbody></table><p><br></p>'
+                                            'content' => '<table style="width: 100%; border-collapse: collapse; border-bottom: 2px solid #000; margin-bottom: 20px;"><tbody><tr><td style="width: 20%; padding: 10px; vertical-align: middle; border: none;"><div style="display: inline-block; width: 80px; height: 80px; border: 1px solid #000; border-radius: 50%; text-align: center; line-height: 80px;">LOGO</div></td><td style="width: 80%; padding: 10px; vertical-align: middle; text-align: right; border: none;"><h2 style="margin: 0;">COMPANY NAME</h2><p style="margin: 0; color: #555;">Company Address &bull; Contact Info &bull; Email</p></td></tr></tbody></table><p><br></p>',
                                         ],
                                         [
                                             'title' => 'Component - Invoice/Receipt Table',
                                             'description' => 'A standardized 5-column item table',
-                                            'content' => '<table style="width: 100%; border-collapse: collapse; border: 1px solid #000; margin-bottom: 20px;"><thead><tr style="background-color: #f2f2f2;"><th style="border: 1px solid #000; padding: 8px; text-align: center; width: 5%;">No.</th><th style="border: 1px solid #000; padding: 8px; text-align: left; width: 50%;">Description</th><th style="border: 1px solid #000; padding: 8px; text-align: center; width: 15%;">Qty</th><th style="border: 1px solid #000; padding: 8px; text-align: right; width: 15%;">Unit Price</th><th style="border: 1px solid #000; padding: 8px; text-align: right; width: 15%;">Total</th></tr></thead><tbody><tr><td style="border: 1px solid #000; padding: 8px; text-align: center;">1</td><td style="border: 1px solid #000; padding: 8px;">Item Description</td><td style="border: 1px solid #000; padding: 8px; text-align: center;">1</td><td style="border: 1px solid #000; padding: 8px; text-align: right;">$0.00</td><td style="border: 1px solid #000; padding: 8px; text-align: right;">$0.00</td></tr><tr><td colspan="4" style="border: 1px solid #000; padding: 8px; text-align: right; font-weight: bold;">Grand Total:</td><td style="border: 1px solid #000; padding: 8px; text-align: right; font-weight: bold;">$0.00</td></tr></tbody></table><p><br></p>'
+                                            'content' => '<table style="width: 100%; border-collapse: collapse; border: 1px solid #000; margin-bottom: 20px;"><thead><tr style="background-color: #f2f2f2;"><th style="border: 1px solid #000; padding: 8px; text-align: center; width: 5%;">No.</th><th style="border: 1px solid #000; padding: 8px; text-align: left; width: 50%;">Description</th><th style="border: 1px solid #000; padding: 8px; text-align: center; width: 15%;">Qty</th><th style="border: 1px solid #000; padding: 8px; text-align: right; width: 15%;">Unit Price</th><th style="border: 1px solid #000; padding: 8px; text-align: right; width: 15%;">Total</th></tr></thead><tbody><tr><td style="border: 1px solid #000; padding: 8px; text-align: center;">1</td><td style="border: 1px solid #000; padding: 8px;">Item Description</td><td style="border: 1px solid #000; padding: 8px; text-align: center;">1</td><td style="border: 1px solid #000; padding: 8px; text-align: right;">$0.00</td><td style="border: 1px solid #000; padding: 8px; text-align: right;">$0.00</td></tr><tr><td colspan="4" style="border: 1px solid #000; padding: 8px; text-align: right; font-weight: bold;">Grand Total:</td><td style="border: 1px solid #000; padding: 8px; text-align: right; font-weight: bold;">$0.00</td></tr></tbody></table><p><br></p>',
                                         ],
                                         [
                                             'title' => 'Element - Signatures (2 Persons)',
                                             'description' => 'Signature block for 2 parties',
-                                            'content' => '<table style="width: 100%; border-collapse: collapse; border: none; margin-top: 40px;"><tbody><tr><td style="width: 50%; padding: 5px; text-align: center; vertical-align: bottom; border: none;"><div style="display: inline-block; width: 200px; border-bottom: 1px solid #000; padding-bottom: 5px;">ហត្ថលេខា / Signature 1</div><p style="margin-top: 5px;">Name / Title</p></td><td style="width: 50%; padding: 5px; text-align: center; vertical-align: bottom; border: none;"><div style="display: inline-block; width: 200px; border-bottom: 1px solid #000; padding-bottom: 5px;">ហត្ថលេខា / Signature 2</div><p style="margin-top: 5px;">Name / Title</p></td></tr></tbody></table><p><br></p>'
+                                            'content' => '<table style="width: 100%; border-collapse: collapse; border: none; margin-top: 40px;"><tbody><tr><td style="width: 50%; padding: 5px; text-align: center; vertical-align: bottom; border: none;"><div style="display: inline-block; width: 200px; border-bottom: 1px solid #000; padding-bottom: 5px;">ហត្ថលេខា / Signature 1</div><p style="margin-top: 5px;">Name / Title</p></td><td style="width: 50%; padding: 5px; text-align: center; vertical-align: bottom; border: none;"><div style="display: inline-block; width: 200px; border-bottom: 1px solid #000; padding-bottom: 5px;">ហត្ថលេខា / Signature 2</div><p style="margin-top: 5px;">Name / Title</p></td></tr></tbody></table><p><br></p>',
                                         ],
                                         [
                                             'title' => 'Shape - Circle (Logo)',
                                             'description' => 'A circular shape for logos or avatars',
-                                            'content' => '<div style="display: inline-block; width: 80px; height: 80px; border: 1px solid #000; border-radius: 50%; text-align: center;">LOGO</div>'
+                                            'content' => '<div style="display: inline-block; width: 80px; height: 80px; border: 1px solid #000; border-radius: 50%; text-align: center;">LOGO</div>',
                                         ],
                                         [
                                             'title' => 'Shape - Square Box',
                                             'description' => 'A simple square box',
-                                            'content' => '<div style="display: inline-block; width: 80px; height: 80px; border: 1px solid #000; text-align: center;">BOX</div>'
+                                            'content' => '<div style="display: inline-block; width: 80px; height: 80px; border: 1px solid #000; text-align: center;">BOX</div>',
                                         ],
                                         [
                                             'title' => 'Shape - Rectangle Photo Box (4x6)',
                                             'description' => '4x6 Photo Box for Khmer forms',
-                                            'content' => '<div style="display: inline-block; width: 80px; height: 100px; border: 1px solid #000; text-align: center;">រូបថត<br>៤x៦</div>'
+                                            'content' => '<div style="display: inline-block; width: 80px; height: 100px; border: 1px solid #000; text-align: center;">រូបថត<br>៤x៦</div>',
                                         ],
                                         [
                                             'title' => 'Element - Checkbox (Small Square)',
                                             'description' => 'Small square for checkboxes',
-                                            'content' => '<div style="display: inline-block; width: 16px; height: 16px; border: 1px solid #000; text-align: center;"></div>'
+                                            'content' => '<div style="display: inline-block; width: 16px; height: 16px; border: 1px solid #000; text-align: center;"></div>',
                                         ],
                                         [
                                             'title' => 'Shape - Rounded Rectangle',
                                             'description' => 'A rectangle with rounded corners',
-                                            'content' => '<div style="display: inline-block; width: 120px; height: 60px; border: 1px solid #000; border-radius: 10px; text-align: center;">TEXT</div>'
+                                            'content' => '<div style="display: inline-block; width: 120px; height: 60px; border: 1px solid #000; border-radius: 10px; text-align: center;">TEXT</div>',
                                         ],
                                         [
                                             'title' => 'Shape - Oval',
                                             'description' => 'An oval shape',
-                                            'content' => '<div style="display: inline-block; width: 120px; height: 60px; border: 1px solid #000; border-radius: 50%; text-align: center;">OVAL</div>'
+                                            'content' => '<div style="display: inline-block; width: 120px; height: 60px; border: 1px solid #000; border-radius: 50%; text-align: center;">OVAL</div>',
                                         ],
                                         [
                                             'title' => 'Element - Signature Area',
                                             'description' => 'A line for signatures',
-                                            'content' => '<div style="display: inline-block; width: 200px; text-align: center; border-bottom: 1px solid #000; padding-bottom: 5px; margin-top: 40px;">ហត្ថលេខា / Signature</div>'
-                                        ]
+                                            'content' => '<div style="display: inline-block; width: 200px; text-align: center; border-bottom: 1px solid #000; padding-bottom: 5px; margin-top: 40px;">ហត្ថលេខា / Signature</div>',
+                                        ],
                                     ],
                                     'text_patterns' => [
-                                        [ 'start' => '#logo', 'replacement' => '<div style="display: inline-block; width: 80px; height: 80px; border: 1px solid #000; border-radius: 50%; text-align: center; line-height: 80px;">LOGO</div>' ],
-                                        [ 'start' => '#box', 'replacement' => '<div style="display: inline-block; width: 80px; height: 80px; border: 1px solid #000; text-align: center; line-height: 80px;">BOX</div>' ],
-                                        [ 'start' => '#photo', 'replacement' => '<div style="display: inline-block; width: 80px; height: 100px; border: 1px solid #000; text-align: center; padding-top: 30px; box-sizing: border-box;">រូបថត<br>៤x៦</div>' ],
-                                        [ 'start' => '#checkbox', 'replacement' => '<div style="display: inline-block; width: 16px; height: 16px; border: 1px solid #000; text-align: center;"></div>' ],
-                                        [ 'start' => '#rounded', 'replacement' => '<div style="display: inline-block; width: 120px; height: 60px; border: 1px solid #000; border-radius: 10px; text-align: center; line-height: 60px;">TEXT</div>' ],
-                                        [ 'start' => '#oval', 'replacement' => '<div style="display: inline-block; width: 120px; height: 60px; border: 1px solid #000; border-radius: 50%; text-align: center; line-height: 60px;">OVAL</div>' ],
-                                        [ 'start' => '#sign', 'replacement' => '<div style="display: inline-block; width: 200px; text-align: center; border-bottom: 1px solid #000; padding-bottom: 5px; margin-top: 40px;">ហត្ថលេខា / Signature</div>' ]
-                                    ]
+                                        ['start' => '#logo', 'replacement' => '<div style="display: inline-block; width: 80px; height: 80px; border: 1px solid #000; border-radius: 50%; text-align: center; line-height: 80px;">LOGO</div>'],
+                                        ['start' => '#box', 'replacement' => '<div style="display: inline-block; width: 80px; height: 80px; border: 1px solid #000; text-align: center; line-height: 80px;">BOX</div>'],
+                                        ['start' => '#photo', 'replacement' => '<div style="display: inline-block; width: 80px; height: 100px; border: 1px solid #000; text-align: center; padding-top: 30px; box-sizing: border-box;">រូបថត<br>៤x៦</div>'],
+                                        ['start' => '#checkbox', 'replacement' => '<div style="display: inline-block; width: 16px; height: 16px; border: 1px solid #000; text-align: center;"></div>'],
+                                        ['start' => '#rounded', 'replacement' => '<div style="display: inline-block; width: 120px; height: 60px; border: 1px solid #000; border-radius: 10px; text-align: center; line-height: 60px;">TEXT</div>'],
+                                        ['start' => '#oval', 'replacement' => '<div style="display: inline-block; width: 120px; height: 60px; border: 1px solid #000; border-radius: 50%; text-align: center; line-height: 60px;">OVAL</div>'],
+                                        ['start' => '#sign', 'replacement' => '<div style="display: inline-block; width: 200px; text-align: center; border-bottom: 1px solid #000; padding-bottom: 5px; margin-top: 40px;">ហត្ថលេខា / Signature</div>'],
+                                    ],
                                 ];
                             }),
                     ]),

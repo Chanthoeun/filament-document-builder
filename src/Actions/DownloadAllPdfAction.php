@@ -10,7 +10,9 @@ use Filament\Notifications\Notification;
 class DownloadAllPdfAction extends Action
 {
     protected $templateResolver = null;
+
     protected $recordsResolver = null;
+
     protected $filenameResolver = null;
 
     public static function getDefaultName(): ?string
@@ -25,52 +27,54 @@ class DownloadAllPdfAction extends Action
         $this->label('Download PDF');
         $this->icon('heroicon-o-document-arrow-down');
         $this->color('success');
-        
+
         $this->action(function () {
             $records = $this->recordsResolver ? $this->evaluate($this->recordsResolver) : collect([]);
-            
+
             if (empty($records) || (is_iterable($records) && count($records) === 0)) {
                 Notification::make()
                     ->title('No records to export')
                     ->warning()
                     ->send();
+
                 return;
             }
 
             $templateType = $this->templateResolver ? $this->evaluate($this->templateResolver) : null;
             $template = null;
-            
+
             if ($templateType instanceof DocumentTemplate) {
                 $template = $templateType;
             } elseif (is_string($templateType)) {
                 $template = DocumentTemplate::where('type', $templateType)->first();
             }
-            
-            if (!$template) {
+
+            if (! $template) {
                 $template = DocumentTemplate::first();
             }
 
-            if (!$template) {
+            if (! $template) {
                 Notification::make()
                     ->title('No Document Template Found')
                     ->danger()
                     ->send();
+
                 return;
             }
 
             $renderer = app(DocumentRenderer::class);
-            
+
             if (method_exists($renderer, 'renderMultiple')) {
                 $pdf = $renderer->renderMultiple($template, $records);
             } else {
                 $pdf = $renderer->render($template, collect($records)->first());
             }
 
-            $filename = $this->filenameResolver 
-                ? $this->evaluate($this->filenameResolver) 
-                : 'documents-' . now()->format('Y-m-d-His') . '.pdf';
+            $filename = $this->filenameResolver
+                ? $this->evaluate($this->filenameResolver)
+                : 'documents-'.now()->format('Y-m-d-His').'.pdf';
 
-            if (!str_ends_with($filename, '.pdf')) {
+            if (! str_ends_with($filename, '.pdf')) {
                 $filename .= '.pdf';
             }
 
@@ -83,24 +87,28 @@ class DownloadAllPdfAction extends Action
     public function templateType(\Closure|string $resolver): static
     {
         $this->templateResolver = $resolver;
+
         return $this;
     }
 
     public function template(\Closure|DocumentTemplate $resolver): static
     {
         $this->templateResolver = $resolver;
+
         return $this;
     }
 
     public function records(\Closure|iterable $resolver): static
     {
         $this->recordsResolver = $resolver;
+
         return $this;
     }
 
     public function filename(\Closure|string $resolver): static
     {
         $this->filenameResolver = $resolver;
+
         return $this;
     }
 }

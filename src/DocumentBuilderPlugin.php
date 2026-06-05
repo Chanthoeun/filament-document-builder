@@ -2,14 +2,16 @@
 
 namespace Chanthoeun\FilamentDocumentBuilder;
 
+use Chanthoeun\FilamentDocumentBuilder\Resources\DocumentTemplateResource;
 use Filament\Contracts\Plugin;
 use Filament\Panel;
-use Chanthoeun\FilamentDocumentBuilder\Resources\DocumentTemplateResource;
 
 class DocumentBuilderPlugin implements Plugin
 {
     protected string|bool|null $navigationGroup = 'Document Builder';
+
     protected string $navigationIcon = 'heroicon-o-document-duplicate';
+
     protected ?int $navigationSort = null;
 
     public function getId(): string
@@ -17,10 +19,11 @@ class DocumentBuilderPlugin implements Plugin
         return 'filament-document-builder';
     }
 
-    public function navigationGroup(bool | string | null $group = null): static
+    public function navigationGroup(bool|string|null $group = null): static
     {
         // If they pass false, they want to explicitly disable the group
         $this->navigationGroup = $group === false ? null : $group;
+
         return $this;
     }
 
@@ -32,6 +35,7 @@ class DocumentBuilderPlugin implements Plugin
     public function navigationSort(?int $sort): static
     {
         $this->navigationSort = $sort;
+
         return $this;
     }
 
@@ -43,6 +47,7 @@ class DocumentBuilderPlugin implements Plugin
     public function navigationIcon(string $icon): static
     {
         $this->navigationIcon = $icon;
+
         return $this;
     }
 
@@ -56,7 +61,7 @@ class DocumentBuilderPlugin implements Plugin
         $resources = [];
 
         // Only register the internal resource if the user hasn't published it to their own application
-        if (!class_exists(\App\Filament\Resources\DocumentTemplateResource::class)) {
+        if (! class_exists(\App\Filament\Resources\DocumentTemplateResource::class)) {
             $resources[] = DocumentTemplateResource::class;
         }
 

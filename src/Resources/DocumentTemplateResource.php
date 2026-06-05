@@ -3,12 +3,12 @@
 namespace Chanthoeun\FilamentDocumentBuilder\Resources;
 
 use Chanthoeun\FilamentDocumentBuilder\Models\DocumentTemplate;
-use Filament\Schemas\Schema;
-use Filament\Resources\Resource;
-use Filament\Tables\Table;
 use Chanthoeun\FilamentDocumentBuilder\Resources\DocumentTemplateResource\Pages;
 use Chanthoeun\FilamentDocumentBuilder\Resources\DocumentTemplateResource\Schemas\DocumentTemplateForm;
 use Chanthoeun\FilamentDocumentBuilder\Resources\DocumentTemplateResource\Tables\DocumentTemplateTable;
+use Filament\Resources\Resource;
+use Filament\Schemas\Schema;
+use Filament\Tables\Table;
 
 class DocumentTemplateResource extends Resource
 {
