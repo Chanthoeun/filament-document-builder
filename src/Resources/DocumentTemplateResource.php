@@ -16,17 +16,26 @@ class DocumentTemplateResource extends Resource
 
     public static function getNavigationIcon(): string|\BackedEnum|null
     {
-        return filament('filament-document-builder')->getNavigationIcon();
+        /** @var \Chanthoeun\FilamentDocumentBuilder\DocumentBuilderPlugin $plugin */
+        $plugin = filament('filament-document-builder');
+
+        return $plugin->getNavigationIcon();
     }
 
     public static function getNavigationGroup(): ?string
     {
-        return filament('filament-document-builder')->getNavigationGroup();
+        /** @var \Chanthoeun\FilamentDocumentBuilder\DocumentBuilderPlugin $plugin */
+        $plugin = filament('filament-document-builder');
+
+        return $plugin->getNavigationGroup();
     }
 
     public static function getNavigationSort(): ?int
     {
-        return filament('filament-document-builder')->getNavigationSort();
+        /** @var \Chanthoeun\FilamentDocumentBuilder\DocumentBuilderPlugin $plugin */
+        $plugin = filament('filament-document-builder');
+
+        return $plugin->getNavigationSort();
     }
 
     public static function form(Schema $schema): Schema

@@ -54,6 +54,7 @@ class EditDocumentTemplate extends EditRecord
                 ->icon('heroicon-o-document-magnifying-glass')
                 ->color('success')
                 ->action(function () {
+                    /** @var \Chanthoeun\FilamentDocumentBuilder\Models\DocumentTemplate $record */
                     $record = $this->record;
                     $record->fill($this->form->getState());
 
@@ -96,7 +97,7 @@ class EditDocumentTemplate extends EditRecord
 
                     return response()->streamDownload(function () use ($pdf) {
                         echo $pdf->output();
-                    }, 'preview-'.Str::slug($record->name).'.pdf');
+                    }, 'preview-'.Str::slug((string) $record->getAttribute('name')).'.pdf');
                 }),
             Actions\DeleteAction::make(),
         ];

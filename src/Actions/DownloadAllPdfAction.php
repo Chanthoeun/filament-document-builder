@@ -31,7 +31,7 @@ class DownloadAllPdfAction extends Action
         $this->action(function () {
             $records = $this->recordsResolver ? $this->evaluate($this->recordsResolver) : collect([]);
 
-            if (empty($records) || (is_iterable($records) && count($records) === 0)) {
+            if ((is_countable($records) ? count($records) : 0) === 0) {
                 Notification::make()
                     ->title('No records to export')
                     ->warning()
@@ -64,11 +64,7 @@ class DownloadAllPdfAction extends Action
 
             $renderer = app(DocumentRenderer::class);
 
-            if (method_exists($renderer, 'renderMultiple')) {
-                $pdf = $renderer->renderMultiple($template, $records);
-            } else {
-                $pdf = $renderer->render($template, collect($records)->first());
-            }
+            $pdf = $renderer->renderMultiple($template, $records);
 
             $filename = $this->filenameResolver
                 ? $this->evaluate($this->filenameResolver)

@@ -3,8 +3,7 @@
 namespace Chanthoeun\FilamentDocumentBuilder\Resources\DocumentTemplateResource\Schemas;
 
 use AmidEsfahani\FilamentTinyEditor\TinyEditor;
-use Chanthoeun\FilamentCustomForms\Models\CustomForm;
-use Chanthoeun\FilamentCustomForms\Models\CustomFormEntry;
+
 use Filament\Forms;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Utilities\Get;
@@ -44,8 +43,8 @@ class DocumentTemplateForm
                                             }
                                         }
                                     }
-                                    if (class_exists(CustomFormEntry::class)) {
-                                        $models[CustomFormEntry::class] = 'Custom Form Entry';
+                                    if (class_exists('Chanthoeun\FilamentCustomForms\Models\CustomFormEntry')) {
+                                        $models['Chanthoeun\FilamentCustomForms\Models\CustomFormEntry'] = 'Custom Form Entry';
                                     }
 
                                     return $models;
@@ -92,8 +91,8 @@ class DocumentTemplateForm
                                                 }
                                             }
                                         }
-                                        if (class_exists(CustomFormEntry::class)) {
-                                            $models[CustomFormEntry::class] = 'Custom Form Entry';
+                                        if (class_exists('Chanthoeun\FilamentCustomForms\Models\CustomFormEntry')) {
+                                            $models['Chanthoeun\FilamentCustomForms\Models\CustomFormEntry'] = 'Custom Form Entry';
                                         }
 
                                         return $models;
@@ -130,9 +129,11 @@ class DocumentTemplateForm
                                     $vars = array_merge(['id', 'created_at', 'updated_at'], $model->getFillable());
 
                                     $type = $get('type');
-                                    if ($modelClass === CustomFormEntry::class && $type && str_starts_with($type, 'custom_form_')) {
+                                    /** @phpstan-ignore-next-line */
+                                    if ($modelClass === 'Chanthoeun\FilamentCustomForms\Models\CustomFormEntry' && $type && str_starts_with($type, 'custom_form_')) {
                                         $formId = str_replace('custom_form_', '', $type);
-                                        $customForm = CustomForm::find($formId);
+                                        $customFormClass = 'Chanthoeun\FilamentCustomForms\Models\CustomForm';
+                                        $customForm = class_exists($customFormClass) ? $customFormClass::find($formId) : null;
                                         if ($customForm) {
                                             $customFields = [];
                                             if ($customForm->fields()->count() > 0) {
@@ -177,6 +178,7 @@ class DocumentTemplateForm
                                     }
                                 }
 
+                                /** @var array<string> $vars */
                                 sort($vars);
 
                                 $settings = $get('page_settings') ?? [];

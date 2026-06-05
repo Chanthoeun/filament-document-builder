@@ -215,13 +215,17 @@ class DocumentRenderer
 
     protected function generatePdfFromHtml(DocumentTemplate $template, string $htmlContent)
     {
-        $html = view('filament-document-builder::document', [
+        /** @var view-string $viewName */
+        $viewName = 'filament-document-builder::document';
+        $settings = $template->getAttribute('page_settings') ?? [];
+
+        $html = view($viewName, [
             'htmlContent' => $htmlContent,
-            'settings' => $template->page_settings,
+            'settings' => $settings,
         ])->render();
 
-        $format = strtoupper(data_get($template->page_settings, 'format', 'a4'));
-        $orientation = data_get($template->page_settings, 'orientation', 'portrait');
+        $format = strtoupper(data_get($settings, 'format', 'a4'));
+        $orientation = data_get($settings, 'orientation', 'portrait');
 
         $pdfConfig = [
             'format' => $format,
@@ -230,8 +234,8 @@ class DocumentRenderer
             'autoLangToFont' => true,
         ];
 
-        if (is_array($template->page_settings)) {
-            foreach ($template->page_settings as $key => $value) {
+        if (is_array($settings)) {
+            foreach ($settings as $key => $value) {
                 if (! in_array($key, ['format', 'orientation']) && $value !== null && $value !== '') {
                     $pdfConfig[$key] = is_numeric($value) ? (float) $value : $value;
                 }
