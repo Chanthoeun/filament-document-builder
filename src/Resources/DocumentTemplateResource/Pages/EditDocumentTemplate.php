@@ -2,6 +2,7 @@
 
 namespace Chanthoeun\FilamentDocumentBuilder\Resources\DocumentTemplateResource\Pages;
 
+use Chanthoeun\FilamentDocumentBuilder\Models\DocumentTemplate;
 use Chanthoeun\FilamentDocumentBuilder\Resources\DocumentTemplateResource;
 use Chanthoeun\FilamentDocumentBuilder\Services\DocumentRenderer;
 use Chanthoeun\FilamentDocumentBuilder\Support\LayoutTemplates;
@@ -54,7 +55,7 @@ class EditDocumentTemplate extends EditRecord
                 ->icon('heroicon-o-document-magnifying-glass')
                 ->color('success')
                 ->action(function () {
-                    /** @var \Chanthoeun\FilamentDocumentBuilder\Models\DocumentTemplate $record */
+                    /** @var DocumentTemplate $record */
                     $record = $this->record;
                     $record->fill($this->form->getState());
 

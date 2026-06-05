@@ -2,6 +2,7 @@
 
 namespace Chanthoeun\FilamentDocumentBuilder\Resources;
 
+use Chanthoeun\FilamentDocumentBuilder\DocumentBuilderPlugin;
 use Chanthoeun\FilamentDocumentBuilder\Models\DocumentTemplate;
 use Chanthoeun\FilamentDocumentBuilder\Resources\DocumentTemplateResource\Pages;
 use Chanthoeun\FilamentDocumentBuilder\Resources\DocumentTemplateResource\Schemas\DocumentTemplateForm;
@@ -16,7 +17,7 @@ class DocumentTemplateResource extends Resource
 
     public static function getNavigationIcon(): string|\BackedEnum|null
     {
-        /** @var \Chanthoeun\FilamentDocumentBuilder\DocumentBuilderPlugin $plugin */
+        /** @var DocumentBuilderPlugin $plugin */
         $plugin = filament('filament-document-builder');
 
         return $plugin->getNavigationIcon();
@@ -24,7 +25,7 @@ class DocumentTemplateResource extends Resource
 
     public static function getNavigationGroup(): ?string
     {
-        /** @var \Chanthoeun\FilamentDocumentBuilder\DocumentBuilderPlugin $plugin */
+        /** @var DocumentBuilderPlugin $plugin */
         $plugin = filament('filament-document-builder');
 
         return $plugin->getNavigationGroup();
@@ -32,7 +33,7 @@ class DocumentTemplateResource extends Resource
 
     public static function getNavigationSort(): ?int
     {
-        /** @var \Chanthoeun\FilamentDocumentBuilder\DocumentBuilderPlugin $plugin */
+        /** @var DocumentBuilderPlugin $plugin */
         $plugin = filament('filament-document-builder');
 
         return $plugin->getNavigationSort();
