@@ -36,5 +36,10 @@
                 "Chanthoeun\\FilamentDocumentBuilder\\FilamentDocumentBuilderServiceProvider"
             ]
         }
+    },
+    "require-dev": {
+        "larastan/larastan": "^3.10",
+        "phpstan/phpstan": "^2.2",
+        "orchestra/testbench": "^11.1"
     }
 }
