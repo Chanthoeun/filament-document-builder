@@ -5,7 +5,6 @@
     <title>Document</title>
     <style>
         body {
-            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
             margin: 0;
             padding: 0;
             color: #000;

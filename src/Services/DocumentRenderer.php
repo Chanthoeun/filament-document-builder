@@ -199,6 +199,9 @@ class DocumentRenderer
         // Strip remote Google Fonts @import rules to prevent massive mPDF network delays
         $htmlContent = preg_replace('/@import\s+url\([\'"]?https:\/\/fonts\.googleapis\.com.*?[\'"]?\);?/i', '', $htmlContent);
 
+        // Strip font-family inline styles to ensure mPDF's autoLangToFont uses the correct built-in fonts for complex scripts like Khmer
+        $htmlContent = preg_replace('/font-family:[^;"\'>]*;?/i', '', $htmlContent);
+
         $appUrl = config('app.url');
         if (! str_ends_with($appUrl, '/')) {
             $appUrl .= '/';
