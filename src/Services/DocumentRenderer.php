@@ -181,15 +181,15 @@ class DocumentRenderer
         $htmlContent = preg_replace('/justify-content:\s*center;?/', 'text-align: center;', $htmlContent);
 
         // Fix Zero Width Space (ZWSP) causing empty rectangle boxes in mPDF Khmer rendering
-        $htmlContent = str_replace("\xE2\x80\x8B", "", $htmlContent); // ZWSP
-        $htmlContent = str_replace("\xE2\x80\x8C", "", $htmlContent); // ZWNJ
-        $htmlContent = str_replace("\xE2\x80\x8D", "", $htmlContent); // ZWJ
-        $htmlContent = str_replace("\xEF\xBB\xBF", "", $htmlContent); // BOM
-        $htmlContent = str_replace("&#8203;", "", $htmlContent);
-        $htmlContent = str_replace("&#8204;", "", $htmlContent);
-        $htmlContent = str_replace("&#8205;", "", $htmlContent);
-        $htmlContent = str_replace("<wbr>", "", $htmlContent);
-        $htmlContent = str_replace("<wbr/>", "", $htmlContent);
+        $htmlContent = str_replace("\xE2\x80\x8B", '', $htmlContent); // ZWSP
+        $htmlContent = str_replace("\xE2\x80\x8C", '', $htmlContent); // ZWNJ
+        $htmlContent = str_replace("\xE2\x80\x8D", '', $htmlContent); // ZWJ
+        $htmlContent = str_replace("\xEF\xBB\xBF", '', $htmlContent); // BOM
+        $htmlContent = str_replace('&#8203;', '', $htmlContent);
+        $htmlContent = str_replace('&#8204;', '', $htmlContent);
+        $htmlContent = str_replace('&#8205;', '', $htmlContent);
+        $htmlContent = str_replace('<wbr>', '', $htmlContent);
+        $htmlContent = str_replace('<wbr/>', '', $htmlContent);
 
         $htmlContent = preg_replace_callback(
             '/<div[^>]*style="([^"]*height:\s*(\d+px)[^"]*)"[^>]*>/i',
@@ -246,7 +246,7 @@ class DocumentRenderer
             'autoScriptToLang' => true,
             'autoLangToFont' => false,
             'default_font' => 'khmerbattambang',
-            'custom_font_dir' => realpath(__DIR__.'/../../resources/fonts') . '/',
+            'custom_font_dir' => realpath(__DIR__.'/../../resources/fonts').'/',
             'custom_font_data' => [
                 'khmerbattambang' => [
                     'R' => 'KhmerOSbattambang.ttf',
