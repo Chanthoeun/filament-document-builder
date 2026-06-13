@@ -180,6 +180,17 @@ class DocumentRenderer
         $htmlContent = preg_replace('/align-items:\s*center;?/', 'vertical-align: middle;', $htmlContent);
         $htmlContent = preg_replace('/justify-content:\s*center;?/', 'text-align: center;', $htmlContent);
 
+        // Fix Zero Width Space (ZWSP) causing empty rectangle boxes in mPDF Khmer rendering
+        $htmlContent = str_replace("\xE2\x80\x8B", "", $htmlContent); // ZWSP
+        $htmlContent = str_replace("\xE2\x80\x8C", "", $htmlContent); // ZWNJ
+        $htmlContent = str_replace("\xE2\x80\x8D", "", $htmlContent); // ZWJ
+        $htmlContent = str_replace("\xEF\xBB\xBF", "", $htmlContent); // BOM
+        $htmlContent = str_replace("&#8203;", "", $htmlContent);
+        $htmlContent = str_replace("&#8204;", "", $htmlContent);
+        $htmlContent = str_replace("&#8205;", "", $htmlContent);
+        $htmlContent = str_replace("<wbr>", "", $htmlContent);
+        $htmlContent = str_replace("<wbr/>", "", $htmlContent);
+
         $htmlContent = preg_replace_callback(
             '/<div[^>]*style="([^"]*height:\s*(\d+px)[^"]*)"[^>]*>/i',
             function ($matches) {
@@ -207,7 +218,7 @@ class DocumentRenderer
         }
 
         $htmlContent = preg_replace(
-            '/src=["\']('.preg_quote($appUrl, '/').')?storage\/(.*?)["\']/i',
+            '/src=["\']('.preg_quote($appUrl, '/').')?\/?storage\/(.*?)["\']/i',
             'src="'.public_path('storage/$2').'"',
             $htmlContent
         );
@@ -234,24 +245,44 @@ class DocumentRenderer
             'orientation' => $orientation === 'landscape' ? 'L' : 'P',
             'autoScriptToLang' => true,
             'autoLangToFont' => false,
-            'default_font' => 'khmeros',
-            'custom_font_dir' => realpath(__DIR__.'/../../resources/fonts'),
+            'default_font' => 'khmerbattambang',
+            'custom_font_dir' => realpath(__DIR__.'/../../resources/fonts') . '/',
             'custom_font_data' => [
                 'khmerbattambang' => [
-                    'R' => 'Battambang-Regular.ttf',
-                    'B' => 'Battambang-Bold.ttf',
+                    'R' => 'KhmerOSbattambang.ttf',
                     'useOTL' => 0xFF,
-                    'useKashida' => 75,
+                ],
+                'khmerosbattambang' => [
+                    'R' => 'KhmerOSbattambang.ttf',
+                    'useOTL' => 0xFF,
+                ],
+                'battambang' => [
+                    'R' => 'KhmerOSbattambang.ttf',
+                    'useOTL' => 0xFF,
                 ],
                 'khmermoullight' => [
-                    'R' => 'MoulLight-Regular.ttf',
+                    'R' => 'KhmerOSmuollight.ttf',
                     'useOTL' => 0xFF,
-                    'useKashida' => 75,
+                ],
+                'khmerosmuollight' => [
+                    'R' => 'KhmerOSmuollight.ttf',
+                    'useOTL' => 0xFF,
+                ],
+                'moul' => [
+                    'R' => 'KhmerOSmuollight.ttf',
+                    'useOTL' => 0xFF,
                 ],
                 'khmersiemreap' => [
-                    'R' => 'Siemreap-Regular.ttf',
+                    'R' => 'KhmerOSsiemreap.ttf',
                     'useOTL' => 0xFF,
-                    'useKashida' => 75,
+                ],
+                'khmerossiemreap' => [
+                    'R' => 'KhmerOSsiemreap.ttf',
+                    'useOTL' => 0xFF,
+                ],
+                'siemreap' => [
+                    'R' => 'KhmerOSsiemreap.ttf',
+                    'useOTL' => 0xFF,
                 ],
                 'calibri' => [
                     'R' => 'FreeSans.ttf',
