@@ -232,7 +232,7 @@ class DocumentRenderer
         $pdfConfig = [
             'format' => $format,
             'orientation' => $orientation === 'landscape' ? 'L' : 'P',
-            'autoScriptToLang' => false,
+            'autoScriptToLang' => true,
             'autoLangToFont' => false,
             'default_font' => 'khmeros',
             'custom_font_dir' => realpath(__DIR__.'/../../resources/fonts'),
