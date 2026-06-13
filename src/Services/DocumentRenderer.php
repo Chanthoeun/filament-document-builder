@@ -235,7 +235,7 @@ class DocumentRenderer
             'autoScriptToLang' => true,
             'autoLangToFont' => true,
             'default_font' => 'khmeros',
-            'custom_font_dir' => __DIR__ . '/../../resources/fonts',
+            'custom_font_dir' => __DIR__.'/../../resources/fonts',
             'custom_font_data' => [
                 'khmerbattambang' => [
                     'R' => 'Battambang-Regular.ttf',
@@ -270,8 +270,8 @@ class DocumentRenderer
                     'B' => 'FreeSerifBold.ttf',
                     'I' => 'FreeSerifItalic.ttf',
                     'BI' => 'FreeSerifBoldItalic.ttf',
-                ]
-            ]
+                ],
+            ],
         ];
 
         if (is_array($settings)) {
