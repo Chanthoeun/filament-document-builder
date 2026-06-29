@@ -111,7 +111,7 @@ class DocumentTemplateForm
                             ->itemLabel(fn (array $state): ?string => $state['variable_name'] ?? null),
                     ]),
                     Step::make(__('filament-document-builder::document-builder.labels.document_designer'))->schema([
-                        Forms\Components\Group::make([
+                        \Filament\Schemas\Components\Group::make([
                             TinyEditor::make('content')
                                 ->label(__('filament-document-builder::document-builder.labels.document_designer'))
                                 ->hiddenLabel()
