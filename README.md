@@ -85,6 +85,11 @@ php artisan filament-document-builder:publish-resource
 ```
 This command intelligently copies the resource files into your `app/Filament/Resources` directory and automatically updates all namespaces. The plugin will automatically detect that you've published the resource and will gracefully yield control, preventing any conflicts.
 
+### 4. Updating the Package
+When pulling the latest updates for this package (e.g., via `composer update`), you generally don't need to re-publish anything if you are using the default plugin configuration. However:
+- **If you previously published the resource:** Your local copy in `app/Filament/Resources/` will NOT automatically receive the new package updates. You will need to either manually copy over the new changes or re-publish the resource (which will overwrite your local customizations).
+- **Assets:** It is always a good idea to run `php artisan filament:assets` after updating to ensure any cached scripts or editor plugins are properly synced to your `public` directory.
+
 ---
 
 ## Usage
