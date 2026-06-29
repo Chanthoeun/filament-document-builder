@@ -216,7 +216,7 @@ class DocumentTemplateForm
                                         'content_style' => $contentStyle,
                                         'min_height' => ceil($minHeight * 3.7795275591) + 40, // Convert mm to px and add some padding
                                         'plugins' => 'custom_shapes accordion autoresize codesample directionality advlist autolink link image lists charmap anchor pagebreak searchreplace wordcount visualblocks visualchars code fullscreen insertdatetime media table emoticons help template',
-                                        'toolbar' => 'undo redo removeformat | fontfamily fontsize fontsizeinput font_size_formats styles | bold italic underline | rtl ltr | alignjustify alignright aligncenter alignleft | numlist bullist outdent indent accordion | forecolor backcolor | blockquote table toc hr | image link anchor media codesample emoticons template insert_variable | visualblocks print wordcount fullscreen help',
+                                        'toolbar' => 'undo redo removeformat | fontfamily fontsize fontsizeinput font_size_formats styles | bold italic underline | rtl ltr | alignjustify alignright aligncenter alignleft | numlist bullist outdent indent accordion | forecolor backcolor | blockquote table toc hr | image link anchor media codesample emoticons custom_shapes template insert_variable | visualblocks print wordcount fullscreen help',
                                         'templates' => [
                                             [
                                                 'title' => 'Layout - 1 Column',
