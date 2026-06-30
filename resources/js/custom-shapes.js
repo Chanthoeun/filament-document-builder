@@ -3,7 +3,7 @@ function registerCustomShapes() {
         tinymce.PluginManager.add('custom_shapes', function (editor, url) {
             editor.ui.registry.addMenuButton('custom_shapes', {
                 text: 'Shapes',
-                icon: 'insert-template',
+                icon: 'template',
                 fetch: function (callback) {
                     var items = [
                         {
