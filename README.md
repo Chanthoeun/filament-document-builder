@@ -66,11 +66,11 @@ public function panel(Panel $panel): Panel
 Because this plugin is built with `Spatie\LaravelPackageTools`, all publishing logic is wired up natively.
 
 ### 1. Publishing the Config File
-To customize default paper sizes, orientations, and margins, publish the config file:
+To customize default paper sizes, orientations, margins, and the predefined TinyMCE templates (like layout tables and shapes), publish the config file:
 ```bash
 php artisan vendor:publish --tag="filament-document-builder-config"
 ```
-This will create `config/filament-document-builder.php` in your application.
+This will create `config/filament-document-builder.php` in your application where you can edit the `templates` array to add your own custom document layouts.
 
 ### 2. Publishing Translations
 To override the default English and Khmer language files, run:
