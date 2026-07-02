@@ -202,12 +202,12 @@ class DocumentTemplateForm
                                     $minHeight = $orientation === 'landscape' ? $dimensions['width'] : $dimensions['height'];
 
                                     $contentStyle = '@import url("https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Moul&family=Siemreap&display=swap"); '.
-                                        'html { background: #f3f4f6; padding: 20px 0; } '.
-                                        'body { font-family: Calibri, "Battambang", Arial, sans-serif; background: #fff; '.
-                                        'width: '.$width.'mm; min-height: '.$minHeight.'mm; '.
+                                        'html { background: #f3f4f6 !important; padding: 20px 0 !important; } '.
+                                        'body { font-family: Calibri, "Battambang", Arial, sans-serif; background: #fff !important; '.
+                                        'width: '.$width.'mm !important; max-width: '.$width.'mm !important; min-height: '.$minHeight.'mm !important; '.
                                         'padding: '.$marginTop.'mm '.$marginRight.'mm '.$marginBottom.'mm '.$marginLeft.'mm !important; '.
-                                        'margin: 0 auto !important; box-shadow: 0 0 10px rgba(0,0,0,0.1); box-sizing: border-box; } '.
-                                        'p { margin-top: 0; }';
+                                        'margin: 0 auto !important; box-shadow: 0 0 10px rgba(0,0,0,0.1) !important; box-sizing: border-box !important; } '.
+                                        'p { margin-top: 0 !important; }';
 
                                     return [
                                         'document_variables' => $vars,
@@ -216,7 +216,7 @@ class DocumentTemplateForm
                                         'content_style' => $contentStyle,
                                         'min_height' => ceil($minHeight * 3.7795275591) + 40, // Convert mm to px and add some padding
                                         'plugins' => 'custom_shapes accordion autoresize codesample directionality advlist autolink link image lists charmap anchor pagebreak searchreplace wordcount visualblocks visualchars code fullscreen insertdatetime media table emoticons help',
-                                        'toolbar' => 'undo redo removeformat | fontfamily fontsize fontsizeinput font_size_formats styles | bold italic underline | rtl ltr | alignjustify alignright aligncenter alignleft | numlist bullist outdent indent accordion | forecolor backcolor | blockquote table toc hr | image link anchor media codesample emoticons custom_shapes custom_templates insert_variable | visualblocks print wordcount fullscreen help',
+                                        'toolbar' => 'undo redo removeformat | fontfamily fontsize fontsizeinput font_size_formats styles | bold italic underline | rtl ltr | alignjustify alignright aligncenter alignleft | numlist bullist outdent indent accordion | forecolor backcolor | blockquote table toc hr | image link anchor media codesample emoticons custom_templates insert_variable | visualblocks print wordcount fullscreen help',
                                         'templates' => config('filament-document-builder.templates', []),
                                         'text_patterns' => [
                                             ['start' => '#logo', 'replacement' => '<div style="display: inline-block; width: 80px; height: 80px; border: 1px solid #000; border-radius: 50%; text-align: center; line-height: 80px;">LOGO</div>'],

@@ -3,7 +3,7 @@ function registerCustomShapes() {
         tinymce.PluginManager.add('custom_shapes', function (editor, url) {
             editor.ui.registry.addMenuButton('custom_templates', {
                 text: 'Templates',
-                icon: 'duplicate',
+                icon: 'template',
                 fetch: function (callback) {
                     var templates = editor.getParam('templates', []);
                     var items = [];
@@ -26,37 +26,6 @@ function registerCustomShapes() {
                             });
                         });
                     }
-                    callback(items);
-                }
-            });
-
-            editor.ui.registry.addMenuButton('custom_shapes', {
-                text: 'Shapes',
-                icon: 'template',
-                fetch: function (callback) {
-                    var items = [
-                        {
-                            type: 'menuitem',
-                            text: 'Circle Shape (Logo)',
-                            onAction: function () {
-                                editor.insertContent('<div style="display: inline-block; width: 80px; height: 80px; border: 1px solid #000; border-radius: 50%; text-align: center; line-height: 80px;">LOGO</div>');
-                            }
-                        },
-                        {
-                            type: 'menuitem',
-                            text: 'Square Box',
-                            onAction: function () {
-                                editor.insertContent('<div style="display: inline-block; width: 80px; height: 80px; border: 1px solid #000; text-align: center; line-height: 80px;">BOX</div>');
-                            }
-                        },
-                        {
-                            type: 'menuitem',
-                            text: 'Rectangle Photo Box (4x6)',
-                            onAction: function () {
-                                editor.insertContent('<div style="display: inline-block; width: 80px; height: 100px; border: 1px solid #000; text-align: center; padding-top: 30px; box-sizing: border-box;">រូបថត<br>៤x៦</div>');
-                            }
-                        }
-                    ];
                     callback(items);
                 }
             });
