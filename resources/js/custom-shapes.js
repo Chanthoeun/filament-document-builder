@@ -1,7 +1,7 @@
 function registerCustomShapes() {
     if (typeof tinymce !== 'undefined') {
         tinymce.PluginManager.add('custom_shapes', function (editor, url) {
-            editor.ui.registry.addMenuButton('custom_templates', {
+            editor.ui.registry.addMenuButton('document_templates_btn', {
                 text: 'Templates',
                 icon: 'template',
                 fetch: function (callback) {
