@@ -103,7 +103,7 @@ When pulling the latest updates for this package (e.g., via `composer update`), 
 
 #### Built-in Shapes and Forms Support
 This plugin adds several pre-configured shapes to the TinyMCE editor to make designing forms significantly easier:
-- Click the **Template** icon in the toolbar (or use the `Shapes` dropdown) to insert pre-made shapes like a **Circle Logo Placeholder**, a **4x6 Photo Box**, a **Rounded Rectangle**, or a **Signature Line**.
+- Click the **Templates** dropdown in the toolbar to insert pre-made shapes like a **Circle Logo Placeholder**, a **4x6 Photo Box**, a **Rounded Rectangle**, or a **Signature Line**, as well as full document layouts.
 - **Keyboard Shortcuts (Text Patterns):** You can also quickly insert shapes by typing the following codes and pressing Space:
     - `#logo` -> Circular Logo Box
     - `#box` -> Square Box
