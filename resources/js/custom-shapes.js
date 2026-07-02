@@ -1,6 +1,35 @@
 function registerCustomShapes() {
     if (typeof tinymce !== 'undefined') {
         tinymce.PluginManager.add('custom_shapes', function (editor, url) {
+            editor.ui.registry.addMenuButton('custom_templates', {
+                text: 'Templates',
+                icon: 'duplicate',
+                fetch: function (callback) {
+                    var templates = editor.getParam('templates', []);
+                    var items = [];
+                    
+                    if (templates.length === 0) {
+                        items.push({
+                            type: 'menuitem',
+                            text: 'No templates available',
+                            disabled: true,
+                            onAction: function () {}
+                        });
+                    } else {
+                        templates.forEach(function(tpl) {
+                            items.push({
+                                type: 'menuitem',
+                                text: tpl.title,
+                                onAction: function () {
+                                    editor.insertContent(tpl.content);
+                                }
+                            });
+                        });
+                    }
+                    callback(items);
+                }
+            });
+
             editor.ui.registry.addMenuButton('custom_shapes', {
                 text: 'Shapes',
                 icon: 'template',
