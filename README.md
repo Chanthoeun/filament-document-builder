@@ -4,10 +4,23 @@ A powerful and simplified Filament PHP plugin to build dynamic document template
 
 It is designed to easily integrate with standalone Filament panels or with other plugins like `chanthoeun/filament-custom-forms`.
 
+## Versioning
+
+| Plugin Version | Filament | Laravel | PHP |
+|---|---|---|---|
+| **v1.4.x** (latest) | v4.0 or v5.0 | 10.x - 13.x | 8.2+ |
+| v1.3.x | v4.0 or v5.0 | 10.x - 13.x | 8.2+ |
+| v1.2.x | v4.0 or v5.0 | 10.x - 13.x | 8.2+ |
+| v1.1.x | v4.0 or v5.0 | 10.x - 13.x | 8.2+ |
+| v1.0.x | v4.0 or v5.0 | 10.x - 13.x | 8.2+ |
+
+This plugin follows [Semantic Versioning](https://semver.org/). Patch releases (e.g. `1.4.0` -> `1.4.1`) are always backwards compatible.
+
 ## Features
 
 - **Advanced HTML Designer:** Uses `amidesfahani/filament-tinyeditor` (TinyMCE) instead of the native Tiptap editor to provide robust support for complex HTML structures and native table editing.
 - **Dynamic Variables:** Inject runtime database values directly into your text blocks (e.g., `{{ customer.name }}`). Fallbacks safely to a blank space if data is missing (perfect for printing blank forms).
+- **QR Codes & Barcodes:** Generate QR codes (`{{#qrcode variable size=100}}`) and barcodes (`{{#barcode variable type=C128 width=2 height=30}}`) directly in your templates.
 - **Native PDF Engine:** Powered by `carlos-meneses/laravel-mpdf` (mPDF) for pure PHP generation.
 - **Complex Text Shaping:** Pre-configured with `autoScriptToLang` and `autoLangToFont` to perfectly render complex alphabets like Khmer natively, without needing headless Chrome or Puppeteer.
 - **Easy Integration:** Drop a simple `Action` onto any Filament table to export the current record as a PDF.
@@ -85,10 +98,36 @@ php artisan filament-document-builder:publish-resource
 ```
 This command intelligently copies the resource files into your `app/Filament/Resources` directory and automatically updates all namespaces. The plugin will automatically detect that you've published the resource and will gracefully yield control, preventing any conflicts.
 
-### 4. Updating the Package
-When pulling the latest updates for this package (e.g., via `composer update`), you generally don't need to re-publish anything if you are using the default plugin configuration. However:
-- **If you previously published the resource:** Your local copy in `app/Filament/Resources/` will NOT automatically receive the new package updates. You will need to either manually copy over the new changes or re-publish the resource (which will overwrite your local customizations).
-- **Assets:** It is always a good idea to run `php artisan filament:assets` after updating to ensure any cached scripts or editor plugins are properly synced to your `public` directory.
+---
+
+## Updating the Plugin
+
+> **Note:** This plugin is updated independently. Updating `filament-document-builder` does **not** update any other plugin (e.g. `filament-custom-forms`, `filament-tinyeditor`, or `laravel-mpdf`). You must update each plugin separately.
+
+### Update Steps
+
+1. Pull the latest version:
+   ```bash
+   composer update chanthoeun/filament-document-builder
+   ```
+2. Run any new migrations (if applicable):
+   ```bash
+   php artisan migrate
+   ```
+3. Rebuild Filament assets to sync any cached scripts or editor plugins:
+   ```bash
+   php artisan filament:assets
+   ```
+
+### After Updating
+
+- **Default configuration:** If you have not published the config or resource, no further action is needed.
+- **Published config:** If you previously published the config (`config/filament-document-builder.php`), check the [Changelog](#changelog) for new options. You can diff your local file against the new default:
+  ```bash
+  # View the new default config
+  cat vendor/chanthoeun/filament-document-builder/config/filament-document-builder.php
+  ```
+- **Published resource:** If you previously published the resource via `php artisan filament-document-builder:publish-resource`, your local copy in `app/Filament/Resources/` will **not** automatically receive new updates. You will need to either manually merge the changes or re-publish the resource (which will overwrite your local customizations).
 
 ---
 
@@ -217,6 +256,29 @@ protected function getHeaderActions(): array
 ---
 
 ## Changelog
+
+### v1.4.0
+- **Feature**: QR code and barcode support in templates (SVG and PNG base64 for mPDF embedding).
+- **Feature**: Model class validation and data source caching to prevent N+1 queries across bulk PDFs.
+- **Feature**: Replaced removed TinyMCE template plugin with a custom templates dropdown.
+- **Improvement**: Moved TinyMCE templates to the config file so they can be published and customized.
+- **Fix**: TinyMCE editor reactive to page settings (height/format).
+- **Fix**: Template icon, toolbar conflicts, and font rendering issues.
+
+### v1.3.0
+- **Feature**: TinyMCE templates are now publishable and configurable via `config/filament-document-builder.php`.
+
+### v1.2.0
+- **Feature**: Support custom TinyMCE fonts for PDF export.
+- **Fix**: Khmer font rendering issues and image resolution in PDF exports.
+- **Fix**: `autoScriptToLang` enabled for complex script shaping while keeping `autoLangToFont` disabled.
+- **Fix**: Code style resolved with Laravel Pint.
+
+### v1.1.0
+- **Performance**: Optimized `DocumentRenderer` to prevent N+1 queries and regex backtracking.
+- **Feature**: Added advanced layout templates to TinyMCE editor.
+- **Improvement**: Improved type safety, decoupled optional dependencies, and cleaned up template rendering logic.
+- **Fix**: Removed hardcoded font-family styles to support mPDF auto-font selection for complex scripts.
 
 ### v1.0.15
 - **Bug Fix**: Fixed an issue where the TinyMCE editor did not dynamically resize based on the live `page_settings` configuration.
