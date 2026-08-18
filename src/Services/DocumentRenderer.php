@@ -138,15 +138,14 @@ class DocumentRenderer
 
     /**
      * Generate a QR code image tag from a value.
-     * Produces a PNG base64 data URI so mPDF can embed it without external requests.
+     * Produces an SVG base64 data URI so mPDF can embed it without external requests.
      */
     protected function generateQrCodeTag(string $value, int $size): string
     {
         try {
-            // Generate as SVG, then convert to PNG via GD for mPDF compatibility
-            $png = QrCode::format('png')->size($size)->generate($value);
+            $svg = (string) QrCode::format('svg')->size($size)->generate($value);
 
-            return '<img src="data:image/png;base64,'.base64_encode($png).'" '
+            return '<img src="data:image/svg+xml;base64,'.base64_encode($svg).'" '
                 .'width="'.$size.'" height="'.$size.'" style="display:inline-block;" />';
         } catch (\Throwable $e) {
             report($e);

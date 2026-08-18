@@ -20,12 +20,12 @@ class DocumentRendererTest extends TestCase
         $this->renderer = new DocumentRenderer;
     }
 
-    protected function mockQrCodeGenerator(string $fakePng = 'fake-png-data'): void
+    protected function mockQrCodeGenerator(string $fakeSvg = '<svg></svg>'): void
     {
         $mock = Mockery::mock(\SimpleSoftwareIO\QrCode\Generator::class);
-        $mock->shouldReceive('format')->with('png')->andReturnSelf();
+        $mock->shouldReceive('format')->with('svg')->andReturnSelf();
         $mock->shouldReceive('size')->andReturnSelf();
-        $mock->shouldReceive('generate')->andReturn($fakePng);
+        $mock->shouldReceive('generate')->andReturn($fakeSvg);
 
         $this->app->instance(\SimpleSoftwareIO\QrCode\Generator::class, $mock);
     }
@@ -399,7 +399,7 @@ class DocumentRendererTest extends TestCase
 
         $result = $this->callProtected('replaceQrCodes', [$html, $data]);
 
-        $this->assertStringContainsString('<img src="data:image/png;base64,', $result);
+        $this->assertStringContainsString('<img src="data:image/svg+xml;base64,', $result);
         $this->assertStringContainsString('width="150"', $result);
         $this->assertStringContainsString('height="150"', $result);
     }
@@ -437,7 +437,7 @@ class DocumentRendererTest extends TestCase
 
         $result = $this->callProtected('replaceQrCodes', [$html, $data]);
 
-        $this->assertStringContainsString('<img src="data:image/png;base64,', $result);
+        $this->assertStringContainsString('<img src="data:image/svg+xml;base64,', $result);
     }
 
     // ─── replaceBarcodes ────────────────────────────────────────────
@@ -489,7 +489,7 @@ class DocumentRendererTest extends TestCase
         ]);
 
         $this->assertStringContainsString('<p>Test User</p>', $result);
-        $this->assertStringContainsString('<img src="data:image/png;base64,', $result);
+        $this->assertStringContainsString('<img src="data:image/svg+xml;base64,', $result);
     }
 
     public function test_full_pipeline_replaces_foreach_and_variables(): void
