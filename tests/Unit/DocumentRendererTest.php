@@ -5,9 +5,8 @@ namespace Chanthoeun\FilamentDocumentBuilder\Tests\Unit;
 use Chanthoeun\FilamentDocumentBuilder\Models\DocumentTemplate;
 use Chanthoeun\FilamentDocumentBuilder\Services\DocumentRenderer;
 use Chanthoeun\FilamentDocumentBuilder\Tests\TestCase;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Facade;
 use Mockery;
+use SimpleSoftwareIO\QrCode\Generator;
 
 class DocumentRendererTest extends TestCase
 {
@@ -22,12 +21,12 @@ class DocumentRendererTest extends TestCase
 
     protected function mockQrCodeGenerator(string $fakeSvg = '<svg></svg>'): void
     {
-        $mock = Mockery::mock(\SimpleSoftwareIO\QrCode\Generator::class);
+        $mock = Mockery::mock(Generator::class);
         $mock->shouldReceive('format')->with('svg')->andReturnSelf();
         $mock->shouldReceive('size')->andReturnSelf();
         $mock->shouldReceive('generate')->andReturn($fakeSvg);
 
-        $this->app->instance(\SimpleSoftwareIO\QrCode\Generator::class, $mock);
+        $this->app->instance(Generator::class, $mock);
     }
 
     protected function tearDown(): void

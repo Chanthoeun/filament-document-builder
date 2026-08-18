@@ -11,7 +11,7 @@ class DownloadAllPdfAction extends Action
 {
     use ResolvesTemplate;
 
-    protected \Closure|null $recordsResolver = null;
+    protected ?\Closure $recordsResolver = null;
 
     public static function getDefaultName(): ?string
     {

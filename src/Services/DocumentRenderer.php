@@ -385,7 +385,7 @@ class DocumentRenderer
         $appUrl = rtrim(config('app.url'), '/');
 
         $htmlContent = preg_replace(
-            '/src=["\']('. preg_quote($appUrl, '/') . ')?\/storage\/(.*?)["\' ]/i',
+            '/src=["\']('.preg_quote($appUrl, '/').')?\/storage\/(.*?)["\' ]/i',
             'src="'.public_path('storage/$2').'"',
             $htmlContent
         );

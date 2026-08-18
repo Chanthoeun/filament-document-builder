@@ -2,6 +2,7 @@
 
 namespace Chanthoeun\FilamentDocumentBuilder\Tests;
 
+use Chanthoeun\FilamentDocumentBuilder\FilamentDocumentBuilderServiceProvider;
 use Orchestra\Testbench\TestCase as BaseTestCase;
 
 abstract class TestCase extends BaseTestCase
@@ -9,7 +10,7 @@ abstract class TestCase extends BaseTestCase
     protected function getPackageProviders($app): array
     {
         return [
-            \Chanthoeun\FilamentDocumentBuilder\FilamentDocumentBuilderServiceProvider::class,
+            FilamentDocumentBuilderServiceProvider::class,
         ];
     }
 
