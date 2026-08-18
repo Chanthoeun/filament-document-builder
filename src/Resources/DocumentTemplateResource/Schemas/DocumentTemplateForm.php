@@ -10,9 +10,49 @@ use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Wizard;
 use Filament\Schemas\Components\Wizard\Step;
 use Filament\Schemas\Schema;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
 
 class DocumentTemplateForm
 {
+    protected static ?array $modelOptionsCache = null;
+
+    protected static function getModelOptions(): array
+    {
+        return static::$modelOptionsCache ??= Cache::remember(
+            'filament-document-builder.model_options',
+            60,
+            function () {
+                $models = [];
+                $path = app_path('Models');
+                if (is_dir($path)) {
+                    foreach (scandir($path) as $file) {
+                        if (pathinfo($file, PATHINFO_EXTENSION) === 'php') {
+                            $class = 'App\\Models\\'.pathinfo($file, PATHINFO_FILENAME);
+                            if (class_exists($class)) {
+                                $models[$class] = class_basename($class);
+                            }
+                        }
+                    }
+                }
+                if (class_exists('Chanthoeun\FilamentCustomForms\Models\CustomFormEntry')) {
+                    $models['Chanthoeun\FilamentCustomForms\Models\CustomFormEntry'] = 'Custom Form Entry';
+                }
+
+                return $models;
+            }
+        );
+    }
+
+    protected static function validateModelClass(?string $value): bool
+    {
+        if (empty($value)) {
+            return true;
+        }
+
+        return class_exists($value) && is_a($value, Model::class, true);
+    }
+
     public static function schema(Schema $schema): Schema
     {
         return $schema
@@ -30,27 +70,16 @@ class DocumentTemplateForm
                                 ->maxLength(255),
                             Forms\Components\Select::make('model_class')
                                 ->label(__('filament-document-builder::document-builder.labels.database_model'))
-                                ->options(function () {
-                                    $models = [];
-                                    $path = app_path('Models');
-                                    if (is_dir($path)) {
-                                        foreach (scandir($path) as $file) {
-                                            if (pathinfo($file, PATHINFO_EXTENSION) === 'php') {
-                                                $class = 'App\\Models\\'.pathinfo($file, PATHINFO_FILENAME);
-                                                if (class_exists($class)) {
-                                                    $models[$class] = class_basename($class);
-                                                }
-                                            }
-                                        }
-                                    }
-                                    if (class_exists('Chanthoeun\FilamentCustomForms\Models\CustomFormEntry')) {
-                                        $models['Chanthoeun\FilamentCustomForms\Models\CustomFormEntry'] = 'Custom Form Entry';
-                                    }
-
-                                    return $models;
-                                })
+                                ->options(fn () => static::getModelOptions())
                                 ->live()
-                                ->placeholder(__('filament-document-builder::document-builder.labels.model_placeholder')),
+                                ->placeholder(__('filament-document-builder::document-builder.labels.model_placeholder'))
+                                ->rules(fn () => [
+                                    function (string $attribute, mixed $value, \Closure $fail) {
+                                        if (! empty($value) && ! static::validateModelClass($value)) {
+                                            $fail(__('filament-document-builder::document-builder.validation.invalid_model'));
+                                        }
+                                    },
+                                ]),
                         ]),
                         Forms\Components\KeyValue::make('page_settings')
                             ->label(__('filament-document-builder::document-builder.labels.page_settings'))
@@ -78,26 +107,15 @@ class DocumentTemplateForm
                                 Forms\Components\Select::make('model_class')
                                     ->label(__('filament-document-builder::document-builder.labels.database_model'))
                                     ->required()
-                                    ->options(function () {
-                                        $models = [];
-                                        $path = app_path('Models');
-                                        if (is_dir($path)) {
-                                            foreach (scandir($path) as $file) {
-                                                if (pathinfo($file, PATHINFO_EXTENSION) === 'php') {
-                                                    $class = 'App\\Models\\'.pathinfo($file, PATHINFO_FILENAME);
-                                                    if (class_exists($class)) {
-                                                        $models[$class] = class_basename($class);
-                                                    }
-                                                }
+                                    ->options(fn () => static::getModelOptions())
+                                    ->searchable()
+                                    ->rules(fn () => [
+                                        function (string $attribute, mixed $value, \Closure $fail) {
+                                            if (! empty($value) && ! static::validateModelClass($value)) {
+                                                $fail(__('filament-document-builder::document-builder.validation.invalid_model'));
                                             }
-                                        }
-                                        if (class_exists('Chanthoeun\FilamentCustomForms\Models\CustomFormEntry')) {
-                                            $models['Chanthoeun\FilamentCustomForms\Models\CustomFormEntry'] = 'Custom Form Entry';
-                                        }
-
-                                        return $models;
-                                    })
-                                    ->searchable(),
+                                        },
+                                    ]),
                                 Forms\Components\Select::make('retrieval_method')
                                     ->label(__('filament-document-builder::document-builder.labels.retrieval_method'))
                                     ->required()
@@ -216,7 +234,7 @@ class DocumentTemplateForm
                                         'content_style' => $contentStyle,
                                         'min_height' => ceil($minHeight * 3.7795275591) + 40, // Convert mm to px and add some padding
                                         'plugins' => 'custom_shapes accordion autoresize codesample directionality advlist autolink link image lists charmap anchor pagebreak searchreplace wordcount visualblocks visualchars code fullscreen insertdatetime media table emoticons template help',
-                                        'toolbar' => 'undo redo removeformat | fontfamily fontsize fontsizeinput font_size_formats styles | bold italic underline | rtl ltr | alignjustify alignright aligncenter alignleft | numlist bullist outdent indent accordion | forecolor backcolor | blockquote table toc hr | image link anchor media codesample emoticons template insert_variable | visualblocks print wordcount fullscreen help',
+                                        'toolbar' => 'undo redo removeformat | fontfamily fontsize fontsizeinput font_size_formats styles | bold italic underline | rtl ltr | alignjustify alignright aligncenter alignleft | numlist bullist outdent indent accordion | forecolor backcolor | blockquote table toc hr | image link anchor media codesample emoticons template insert_variable insert_qrcode insert_barcode | visualblocks print wordcount fullscreen help',
                                         'templates' => config('filament-document-builder.templates', []),
                                         'text_patterns' => [
                                             ['start' => '#logo', 'replacement' => '<div style="display: inline-block; width: 80px; height: 80px; border: 1px solid #000; border-radius: 50%; text-align: center; line-height: 80px;">LOGO</div>'],

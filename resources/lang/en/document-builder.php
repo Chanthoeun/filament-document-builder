@@ -28,4 +28,7 @@ return [
         'no_model_linked' => 'No model linked',
         'model_prefix' => 'Model: ',
     ],
+    'validation' => [
+        'invalid_model' => 'The selected value is not a valid Eloquent model class.',
+    ],
 ];

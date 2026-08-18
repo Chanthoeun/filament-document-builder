@@ -6,6 +6,8 @@ use Chanthoeun\FilamentDocumentBuilder\Models\DocumentTemplate;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Mccarlosen\LaravelMpdf\Facades\LaravelMpdf as Pdf;
+use Picqer\Barcode\BarcodeGeneratorPNG;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class DocumentRenderer
 {
@@ -15,39 +17,78 @@ class DocumentRenderer
     protected static array $extraDataCache = [];
 
     /**
-     * Eager load relations used in the template to prevent N+1 queries.
+     * Clear the extra data source cache. Call this between requests in long-running workers
+     * (e.g. Octane, Horizon) to prevent stale data.
      */
-    protected function preloadRelations(?string $content, array|object $data): void
+    public static function clearCache(): void
     {
-        if (empty($content) || ! ($data instanceof Model)) {
-            return;
+        self::$extraDataCache = [];
+    }
+
+    /**
+     * Resolve a value by key, falling back through parent scopes if null.
+     */
+    protected function resolveWithParentScope(mixed $value, array|object $data, string $key): mixed
+    {
+        $currentContext = $data;
+        while ($value === null && is_array($currentContext) && array_key_exists('_parent', $currentContext)) {
+            $currentContext = $currentContext['_parent'];
+            $value = data_get($currentContext, $key);
         }
 
-        // Find all {{ variable.nested }} or {{#foreach variable.nested as ...}}
+        return $value;
+    }
+
+    /**
+     * Parse the template HTML and extract relation paths for eager loading.
+     */
+    protected function parseRelationPaths(string $content): array
+    {
         preg_match_all('/{{\s*(?:#foreach\s+)?([a-zA-Z0-9_\.]+)/', $content, $matches);
 
         $relationsToLoad = [];
         foreach ($matches[1] as $match) {
             $parts = explode('.', $match);
-            // If there's a dot, the preceding parts are likely relations
             if (count($parts) > 1) {
-                array_pop($parts); // Remove the field name
-                $relation = implode('.', $parts);
-                $relationsToLoad[] = $relation;
+                array_pop($parts);
+                $relationsToLoad[] = implode('.', $parts);
             }
         }
 
-        if (! empty($relationsToLoad)) {
-            // Only load relations that actually exist on the model to avoid exceptions
-            $validRelations = [];
-            foreach (array_unique($relationsToLoad) as $rel) {
-                if (method_exists($data, explode('.', $rel)[0])) {
-                    $validRelations[] = $rel;
-                }
+        return array_unique($relationsToLoad);
+    }
+
+    /**
+     * Eager load relations used in the template to prevent N+1 queries.
+     * Accepts a single Model or an Eloquent Collection.
+     */
+    protected function preloadRelations(?string $content, Model|Collection $data): void
+    {
+        if (empty($content)) {
+            return;
+        }
+
+        $relationsToLoad = $this->parseRelationPaths($content);
+
+        if (empty($relationsToLoad)) {
+            return;
+        }
+
+        $referenceModel = $data instanceof Collection ? $data->first() : $data;
+
+        if (! $referenceModel instanceof Model) {
+            return;
+        }
+
+        $validRelations = [];
+        foreach ($relationsToLoad as $rel) {
+            if (method_exists($referenceModel, explode('.', $rel)[0])) {
+                $validRelations[] = $rel;
             }
-            if (! empty($validRelations)) {
-                $data->loadMissing($validRelations);
-            }
+        }
+
+        if (! empty($validRelations)) {
+            $data->loadMissing($validRelations);
         }
     }
 
@@ -72,14 +113,7 @@ class DocumentRenderer
 
                 $blockContent = $matches[3];
 
-                $items = data_get($data, $arrayPath);
-
-                // Fallback for parent scopes
-                $currentContext = $data;
-                while ($items === null && is_array($currentContext) && array_key_exists('_parent', $currentContext)) {
-                    $currentContext = $currentContext['_parent'];
-                    $items = data_get($currentContext, $arrayPath);
-                }
+                $items = $this->resolveWithParentScope(data_get($data, $arrayPath), $data, $arrayPath);
 
                 if (! is_iterable($items)) {
                     return '';
@@ -103,6 +137,122 @@ class DocumentRenderer
     }
 
     /**
+     * Generate a QR code image tag from a value.
+     * Produces a PNG base64 data URI so mPDF can embed it without external requests.
+     */
+    protected function generateQrCodeTag(string $value, int $size): string
+    {
+        try {
+            // Generate as SVG, then convert to PNG via GD for mPDF compatibility
+            $png = QrCode::format('png')->size($size)->generate($value);
+
+            return '<img src="data:image/png;base64,'.base64_encode($png).'" '
+                .'width="'.$size.'" height="'.$size.'" style="display:inline-block;" />';
+        } catch (\Throwable $e) {
+            report($e);
+
+            return '<!-- QR code generation failed -->';
+        }
+    }
+
+    /**
+     * Map of human-readable barcode type names to BarcodeGeneratorPNG constants.
+     */
+    protected static array $barcodeTypes = [
+        'C128' => 'TYPE_CODE_128',
+        'C128A' => 'TYPE_CODE_128_A',
+        'C128B' => 'TYPE_CODE_128_B',
+        'C128C' => 'TYPE_CODE_128_C',
+        'C39' => 'TYPE_CODE_39',
+        'C39+' => 'TYPE_CODE_39_CHECKSUM',
+        'C93' => 'TYPE_CODE_93',
+        'EAN13' => 'TYPE_EAN_13',
+        'EAN8' => 'TYPE_EAN_8',
+        'UPCA' => 'TYPE_UPC_A',
+        'UPCE' => 'TYPE_UPC_E',
+        'I25' => 'TYPE_INTERLEAVED_2_5',
+        'S25' => 'TYPE_STANDARD_2_5',
+        'CODABAR' => 'TYPE_CODABAR',
+        'MSI' => 'TYPE_MSI',
+    ];
+
+    /**
+     * Generate a barcode image tag from a value using the specified type.
+     * Produces a PNG base64 data URI so mPDF can embed it without external requests.
+     */
+    protected function generateBarcodeTag(string $value, string $type, int $widthFactor, int $height): string
+    {
+        try {
+            $generator = new BarcodeGeneratorPNG;
+            $constant = self::$barcodeTypes[$type] ?? 'TYPE_CODE_128';
+            $png = $generator->getBarcode($value, constant(BarcodeGeneratorPNG::class.'::'.$constant), $widthFactor, $height);
+
+            return '<img src="data:image/png;base64,'.base64_encode($png).'" '
+                .'style="display:inline-block; height:'.$height.'px;" />';
+        } catch (\Throwable $e) {
+            report($e);
+
+            return '<!-- Barcode generation failed -->';
+        }
+    }
+
+    /**
+     * Replaces QR code blocks: {{#qrcode variable size=100}}
+     */
+    protected function replaceQrCodes(?string $content, array|object $data): ?string
+    {
+        if (empty($content)) {
+            return $content;
+        }
+
+        return preg_replace_callback(
+            '/{{\s*#qrcode\s+([a-zA-Z0-9_\.]+)(?:\s+size=(\d+))?\s*}}/i',
+            function ($matches) use ($data) {
+                $key = trim($matches[1]);
+                $size = isset($matches[2]) ? (int) $matches[2] : 100;
+
+                $value = $this->resolveWithParentScope(data_get($data, $key), $data, $key);
+
+                if ($value === null || $value === '') {
+                    return '';
+                }
+
+                return $this->generateQrCodeTag((string) $value, $size);
+            },
+            $content
+        );
+    }
+
+    /**
+     * Replaces barcode blocks: {{#barcode variable type=C128 width=2 height=30}}
+     */
+    protected function replaceBarcodes(?string $content, array|object $data): ?string
+    {
+        if (empty($content)) {
+            return $content;
+        }
+
+        return preg_replace_callback(
+            '/{{\s*#barcode\s+([a-zA-Z0-9_\.]+)(?:\s+type=([a-zA-Z0-9_]+))?(?:\s+width=(\d+))?(?:\s+height=(\d+))?\s*}}/i',
+            function ($matches) use ($data) {
+                $key = trim($matches[1]);
+                $type = isset($matches[2]) ? strtoupper($matches[2]) : 'C128';
+                $widthFactor = isset($matches[3]) ? (int) $matches[3] : 2;
+                $height = isset($matches[4]) ? (int) $matches[4] : 30;
+
+                $value = $this->resolveWithParentScope(data_get($data, $key), $data, $key);
+
+                if ($value === null || $value === '') {
+                    return '';
+                }
+
+                return $this->generateBarcodeTag((string) $value, $type, $widthFactor, $height);
+            },
+            $content
+        );
+    }
+
+    /**
      * Replaces string variables like {{ variable.name }} with actual data.
      */
     protected function replaceVariables(?string $content, array|object $data): ?string
@@ -112,22 +262,18 @@ class DocumentRenderer
         }
 
         // Basic replacement logic for {{ variable }} or {{ variable.key }}
-        return preg_replace_callback('/{{(.*?)}}/s', function ($matches) use ($data) {
+        return preg_replace_callback('/{{([^{}]*)}}/', function ($matches) use ($data) {
             $key = trim(strip_tags($matches[1]));
             $key = html_entity_decode(str_replace('&nbsp;', '', $key));
             $key = trim($key);
 
-            if (str_starts_with($key, '#foreach') || str_starts_with($key, '/foreach')) {
+            if (str_starts_with($key, '#foreach') || str_starts_with($key, '/foreach')
+                || str_starts_with($key, '#qrcode') || str_starts_with($key, '/qrcode')
+                || str_starts_with($key, '#barcode') || str_starts_with($key, '/barcode')) {
                 return $matches[0];
             }
 
-            $value = data_get($data, $key);
-
-            $currentContext = $data;
-            while ($value === null && is_array($currentContext) && array_key_exists('_parent', $currentContext)) {
-                $currentContext = $currentContext['_parent'];
-                $value = data_get($currentContext, $key);
-            }
+            $value = $this->resolveWithParentScope(data_get($data, $key), $data, $key);
 
             if ($value === null || $value === '') {
                 return ''; // Return empty string instead of debug text in production
@@ -145,13 +291,33 @@ class DocumentRenderer
         $htmlContent = $template->content ?? '';
 
         // Eager load relations to prevent N+1 performance bottlenecks
-        $this->preloadRelations($htmlContent, $data);
+        if ($data instanceof Model || $data instanceof Collection) {
+            $this->preloadRelations($htmlContent, $data);
+        }
 
-        // Fetch extra data sources defined in the template (Cached statically)
+        $data = $this->resolveExtraDataSources($template, $data);
+
+        // Process QR codes and barcodes before standard variable replacement
+        $htmlContent = $this->replaceQrCodes($htmlContent, $data);
+        $htmlContent = $this->replaceBarcodes($htmlContent, $data);
+
+        $htmlContent = $this->replaceLoops($htmlContent, $data);
+        $htmlContent = $this->replaceVariables($htmlContent, $data);
+
+        $htmlContent = $this->applyMpdfPolyfills($htmlContent);
+
+        return $htmlContent;
+    }
+
+    /**
+     * Fetch extra data sources defined in the template and merge them into the data array.
+     */
+    protected function resolveExtraDataSources(DocumentTemplate $template, array|object $data): array|object
+    {
         $extraData = [];
         if (! empty($template->extra_data_sources)) {
             foreach ($template->extra_data_sources as $source) {
-                if (! empty($source['variable_name']) && ! empty($source['model_class']) && class_exists($source['model_class'])) {
+                if (! empty($source['variable_name']) && ! empty($source['model_class']) && class_exists($source['model_class']) && is_a($source['model_class'], Model::class, true)) {
                     $method = $source['retrieval_method'] ?? 'first';
                     $cacheKey = md5($source['model_class'].'_'.$method);
 
@@ -172,10 +338,15 @@ class DocumentRenderer
             $data = array_merge(['_parent' => $data], $extraData);
         }
 
-        $htmlContent = $this->replaceLoops($htmlContent, $data);
-        $htmlContent = $this->replaceVariables($htmlContent, $data);
+        return $data;
+    }
 
-        // mPDF compatibility fixes
+    /**
+     * Apply mPDF compatibility polyfills to HTML content.
+     */
+    protected function applyMpdfPolyfills(string $htmlContent): string
+    {
+        // CSS flexbox polyfills for mPDF
         $htmlContent = preg_replace('/display:\s*inline-flex;?/', 'display: inline-block;', $htmlContent);
         $htmlContent = preg_replace('/align-items:\s*center;?/', 'vertical-align: middle;', $htmlContent);
         $htmlContent = preg_replace('/justify-content:\s*center;?/', 'text-align: center;', $htmlContent);
@@ -191,6 +362,7 @@ class DocumentRenderer
         $htmlContent = str_replace('<wbr>', '', $htmlContent);
         $htmlContent = str_replace('<wbr/>', '', $htmlContent);
 
+        // Add line-height to divs with explicit height for vertical centering
         $htmlContent = preg_replace_callback(
             '/<div[^>]*style="([^"]*height:\s*(\d+px)[^"]*)"[^>]*>/i',
             function ($matches) {
@@ -210,15 +382,11 @@ class DocumentRenderer
         // Strip remote Google Fonts @import rules to prevent massive mPDF network delays
         $htmlContent = preg_replace('/@import\s+url\([\'"]?https:\/\/fonts\.googleapis\.com.*?[\'"]?\);?/i', '', $htmlContent);
 
-        // Allow font-family inline styles since we now register the custom fonts in mPDF config
-
-        $appUrl = config('app.url');
-        if (! str_ends_with($appUrl, '/')) {
-            $appUrl .= '/';
-        }
+        // Rewrite /storage/ URLs to absolute filesystem paths for mPDF
+        $appUrl = rtrim(config('app.url'), '/');
 
         $htmlContent = preg_replace(
-            '/src=["\']('.preg_quote($appUrl, '/').')?\/?storage\/(.*?)["\']/i',
+            '/src=["\']('. preg_quote($appUrl, '/') . ')?\/storage\/(.*?)["\' ]/i',
             'src="'.public_path('storage/$2').'"',
             $htmlContent
         );
@@ -226,7 +394,7 @@ class DocumentRenderer
         return $htmlContent;
     }
 
-    protected function generatePdfFromHtml(DocumentTemplate $template, string $htmlContent)
+    protected function generatePdfFromHtml(DocumentTemplate $template, string $htmlContent): mixed
     {
         /** @var view-string $viewName */
         $viewName = 'filament-document-builder::document';
@@ -316,46 +484,22 @@ class DocumentRenderer
         return Pdf::loadHTML($html, $pdfConfig);
     }
 
-    public function render(DocumentTemplate $template, array|object $data = [])
+    public function render(DocumentTemplate $template, array|object $data = []): mixed
     {
         $htmlContent = $this->processHtmlContent($template, $data);
 
         return $this->generatePdfFromHtml($template, $htmlContent);
     }
 
-    public function renderMultiple(DocumentTemplate $template, iterable $records)
+    public function renderMultiple(DocumentTemplate $template, iterable $records): mixed
     {
         $htmlContent = $template->content ?? '';
 
         // Convert to Eloquent Collection to enable bulk relation loading
-        $eloquentCollection = new Collection($records);
-        $firstRecord = $eloquentCollection->first();
+        $eloquentCollection = $records instanceof Collection ? $records : new Collection($records);
 
         // Bulk load relations for the entire collection to prevent N+1 queries
-        if ($firstRecord instanceof Model) {
-            preg_match_all('/{{\s*(?:#foreach\s+)?([a-zA-Z0-9_\.]+)/', $htmlContent, $matches);
-
-            $relationsToLoad = [];
-            foreach ($matches[1] as $match) {
-                $parts = explode('.', $match);
-                if (count($parts) > 1) {
-                    array_pop($parts);
-                    $relationsToLoad[] = implode('.', $parts);
-                }
-            }
-
-            if (! empty($relationsToLoad)) {
-                $validRelations = [];
-                foreach (array_unique($relationsToLoad) as $rel) {
-                    if (method_exists($firstRecord, explode('.', $rel)[0])) {
-                        $validRelations[] = $rel;
-                    }
-                }
-                if (! empty($validRelations)) {
-                    $eloquentCollection->loadMissing($validRelations);
-                }
-            }
-        }
+        $this->preloadRelations($htmlContent, $eloquentCollection);
 
         $htmlContents = [];
         foreach ($eloquentCollection as $record) {

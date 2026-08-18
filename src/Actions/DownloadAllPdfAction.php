@@ -2,18 +2,16 @@
 
 namespace Chanthoeun\FilamentDocumentBuilder\Actions;
 
-use Chanthoeun\FilamentDocumentBuilder\Models\DocumentTemplate;
 use Chanthoeun\FilamentDocumentBuilder\Services\DocumentRenderer;
+use Chanthoeun\FilamentDocumentBuilder\Support\ResolvesTemplate;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 
 class DownloadAllPdfAction extends Action
 {
-    protected $templateResolver = null;
+    use ResolvesTemplate;
 
-    protected $recordsResolver = null;
-
-    protected $filenameResolver = null;
+    protected \Closure|null $recordsResolver = null;
 
     public static function getDefaultName(): ?string
     {
@@ -40,24 +38,10 @@ class DownloadAllPdfAction extends Action
                 return;
             }
 
-            $templateType = $this->templateResolver ? $this->evaluate($this->templateResolver) : null;
-            $template = null;
-
-            if ($templateType instanceof DocumentTemplate) {
-                $template = $templateType;
-            } elseif (is_string($templateType)) {
-                $template = DocumentTemplate::where('type', $templateType)->first();
-            }
+            $template = $this->resolveTemplate();
 
             if (! $template) {
-                $template = DocumentTemplate::first();
-            }
-
-            if (! $template) {
-                Notification::make()
-                    ->title('No Document Template Found')
-                    ->danger()
-                    ->send();
+                $this->notifyTemplateNotFound();
 
                 return;
             }
@@ -66,13 +50,7 @@ class DownloadAllPdfAction extends Action
 
             $pdf = $renderer->renderMultiple($template, $records);
 
-            $filename = $this->filenameResolver
-                ? $this->evaluate($this->filenameResolver)
-                : 'documents-'.now()->format('Y-m-d-His').'.pdf';
-
-            if (! str_ends_with($filename, '.pdf')) {
-                $filename .= '.pdf';
-            }
+            $filename = $this->resolveFilename();
 
             return response()->streamDownload(function () use ($pdf) {
                 echo $pdf->output();
@@ -80,30 +58,9 @@ class DownloadAllPdfAction extends Action
         });
     }
 
-    public function templateType(\Closure|string $resolver): static
-    {
-        $this->templateResolver = $resolver;
-
-        return $this;
-    }
-
-    public function template(\Closure|DocumentTemplate $resolver): static
-    {
-        $this->templateResolver = $resolver;
-
-        return $this;
-    }
-
     public function records(\Closure|iterable $resolver): static
     {
         $this->recordsResolver = $resolver;
-
-        return $this;
-    }
-
-    public function filename(\Closure|string $resolver): static
-    {
-        $this->filenameResolver = $resolver;
 
         return $this;
     }

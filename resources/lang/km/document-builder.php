@@ -28,4 +28,7 @@ return [
         'no_model_linked' => 'គ្មានទិន្នន័យភ្ជាប់ទេ',
         'model_prefix' => 'ម៉ូដែល: ',
     ],
+    'validation' => [
+        'invalid_model' => 'តម្លៃដែលបានជ្រើសរើសមិនមែនជា Eloquent model class ត្រឹមត្រូវទេ។',
+    ],
 ];
