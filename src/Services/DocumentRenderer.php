@@ -345,6 +345,13 @@ class DocumentRenderer
      */
     protected function applyMpdfPolyfills(string $htmlContent): string
     {
+        // Convert TinyMCE page breaks into mPDF's native <pagebreak /> tag.
+        // TinyMCE stores them as HTML comments (<!-- pagebreak -->) by default, which mPDF ignores.
+        // Also support placeholder images/HRs (e.g. content saved with the editor's default markup).
+        $htmlContent = preg_replace('/<!--\s*pagebreak\s*-->/i', '<pagebreak />', $htmlContent);
+        $htmlContent = preg_replace('/<img\b[^>]*\bclass=("|\')[^"\']*\bmce-pagebreak\b[^"\']*\1[^>]*>/i', '<pagebreak />', $htmlContent);
+        $htmlContent = preg_replace('/<hr\b[^>]*\bclass=("|\')[^"\']*\bmce-pagebreak\b[^"\']*\1[^>]*>/i', '<pagebreak />', $htmlContent);
+
         // CSS flexbox polyfills for mPDF
         $htmlContent = preg_replace('/display:\s*inline-flex;?/', 'display: inline-block;', $htmlContent);
         $htmlContent = preg_replace('/align-items:\s*center;?/', 'vertical-align: middle;', $htmlContent);

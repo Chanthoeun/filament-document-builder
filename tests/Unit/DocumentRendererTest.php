@@ -600,4 +600,61 @@ class DocumentRendererTest extends TestCase
 
         $this->assertStringContainsString(public_path('storage/uploads/logo.png'), $result);
     }
+
+    public function test_apply_mpdf_polyfills_converts_tinymce_pagebreak_comment(): void
+    {
+        $result = $this->callProtected('applyMpdfPolyfills', [
+            '<p>Page 1</p><!-- pagebreak --><p>Page 2</p>',
+        ]);
+
+        $this->assertStringContainsString('<pagebreak />', $result);
+        $this->assertStringNotContainsString('<!-- pagebreak -->', $result);
+        $this->assertStringContainsString('<p>Page 1</p>', $result);
+        $this->assertStringContainsString('<p>Page 2</p>', $result);
+    }
+
+    public function test_apply_mpdf_polyfills_converts_tinymce_pagebreak_comment_with_varying_whitespace(): void
+    {
+        $result = $this->callProtected('applyMpdfPolyfills', [
+            '<!--pagebreak--><!--  PAGEBREAK  -->',
+        ]);
+
+        $this->assertEquals('<pagebreak /><pagebreak />', $result);
+    }
+
+    public function test_apply_mpdf_polyfills_converts_tinymce_pagebreak_placeholder_image(): void
+    {
+        $result = $this->callProtected('applyMpdfPolyfills', [
+            '<p>Page 1</p><img src="data:image/gif;base64,R0lGODlh" class="mce-pagebreak" data-mce-resize="false" data-mce-placeholder><p>Page 2</p>',
+        ]);
+
+        $this->assertStringContainsString('<pagebreak />', $result);
+        $this->assertStringNotContainsString('mce-pagebreak', $result);
+    }
+
+    public function test_apply_mpdf_polyfills_converts_tinymce_pagebreak_placeholder_hr(): void
+    {
+        $result = $this->callProtected('applyMpdfPolyfills', [
+            '<p>Page 1</p><hr class="mce-pagebreak"><p>Page 2</p>',
+        ]);
+
+        $this->assertStringContainsString('<pagebreak />', $result);
+        $this->assertStringNotContainsString('mce-pagebreak', $result);
+    }
+
+    public function test_process_html_preserves_pagebreak(): void
+    {
+        $template = $this->makeTemplate([
+            'content' => '<p>{{ title }}</p><!-- pagebreak --><p>{{ body }}</p>',
+        ]);
+
+        $result = $this->callProtected('processHtmlContent', [
+            $template,
+            ['title' => 'Title', 'body' => 'Body'],
+        ]);
+
+        $this->assertStringContainsString('<p>Title</p>', $result);
+        $this->assertStringContainsString('<pagebreak />', $result);
+        $this->assertStringContainsString('<p>Body</p>', $result);
+    }
 }
