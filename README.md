@@ -8,7 +8,7 @@ It is designed to easily integrate with standalone Filament panels or with other
 
 | Plugin Version | Filament | Laravel | PHP |
 |---|---|---|---|
-| **v1.4.x** (latest) | v4.0 or v5.0 | 10.x - 13.x | 8.2+ |
+| **v1.4.x** (latest) | v4.0 or v5.0 | 11.x - 13.x | 8.2+ |
 | v1.3.x | v4.0 or v5.0 | 10.x - 13.x | 8.2+ |
 | v1.2.x | v4.0 or v5.0 | 10.x - 13.x | 8.2+ |
 | v1.1.x | v4.0 or v5.0 | 10.x - 13.x | 8.2+ |
@@ -24,7 +24,7 @@ This plugin follows [Semantic Versioning](https://semver.org/). Patch releases (
 - **Native PDF Engine:** Powered by `carlos-meneses/laravel-mpdf` (mPDF) for pure PHP generation.
 - **Complex Text Shaping:** Pre-configured with `autoScriptToLang` and `autoLangToFont` to perfectly render complex alphabets like Khmer natively, without needing headless Chrome or Puppeteer.
 - **Easy Integration:** Drop a simple `Action` onto any Filament table to export the current record as a PDF.
-- **Support for Filament v4 & v5 (Laravel 10-13).**
+- **Support for Filament v4 & v5 (Laravel 11-13).**
 
 ---
 
@@ -32,6 +32,7 @@ This plugin follows [Semantic Versioning](https://semver.org/). Patch releases (
 
 ### 1. Requirements
 - PHP 8.2+
+- Laravel 11.x, 12.x, or 13.x
 - Filament v4.0 or v5.0
 - TinyMCE (`amidesfahani/filament-tinyeditor`)
 - mPDF (`carlos-meneses/laravel-mpdf`)
