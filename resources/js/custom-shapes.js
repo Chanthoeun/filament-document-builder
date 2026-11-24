@@ -243,6 +243,11 @@ function registerCustomShapes() {
                 }
             });
 
+            // Automatically flush changes to Alpine/Livewire state on any editor input or content change
+            editor.on('input keyup NodeChange SetContent paste undo redo', function () {
+                editor.fire('change');
+            });
+
         });
     } else if (customShapesRetries < 50) {
         customShapesRetries++;
@@ -250,3 +255,41 @@ function registerCustomShapes() {
     }
 }
 registerCustomShapes();
+
+// Global capture listener on buttons and forms to guarantee TinyMCE saves immediately
+if (typeof window !== 'undefined' && !window._filamentTinyMCEGlobalSaveBound) {
+    window._filamentTinyMCEGlobalSaveBound = true;
+
+    function flushAllTinyMCE() {
+        if (typeof tinymce !== 'undefined') {
+            try {
+                tinymce.triggerSave();
+                var eds = [];
+                if (Array.isArray(tinymce.editors)) {
+                    eds = tinymce.editors;
+                } else if (tinymce.editors && typeof tinymce.editors === 'object') {
+                    eds = Object.values(tinymce.editors);
+                }
+                eds.forEach(function (ed) {
+                    if (ed && !ed.isDestroyed) {
+                        try {
+                            ed.fire('change');
+                            ed.fire('blur');
+                        } catch (e) {}
+                    }
+                });
+            } catch (e) {}
+        }
+    }
+
+    document.addEventListener('click', function (e) {
+        var btn = e.target.closest('button, [role="button"], a');
+        if (btn) {
+            flushAllTinyMCE();
+        }
+    }, true);
+
+    document.addEventListener('submit', function () {
+        flushAllTinyMCE();
+    }, true);
+}

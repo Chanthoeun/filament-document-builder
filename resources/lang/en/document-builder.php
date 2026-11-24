@@ -28,6 +28,15 @@ return [
         'no_model_linked' => 'No model linked',
         'model_prefix' => 'Model: ',
     ],
+    'actions' => [
+        'download_pdf' => 'Download PDF',
+        'close' => 'Close',
+    ],
+    'messages' => [
+        'saved' => 'Document template saved successfully.',
+        'no_model_selected' => 'You must select a Database Model in the Template Details step before you can preview.',
+        'unable_to_generate_preview' => 'Unable to generate PDF preview.',
+    ],
     'validation' => [
         'invalid_model' => 'The selected value is not a valid Eloquent model class.',
     ],

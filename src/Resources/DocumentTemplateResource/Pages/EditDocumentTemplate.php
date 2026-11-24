@@ -17,6 +17,38 @@ class EditDocumentTemplate extends EditRecord
 {
     protected static string $resource = DocumentTemplateResource::class;
 
+    protected function getSavedNotification(): ?Notification
+    {
+        return Notification::make()
+            ->title(__('filament-panels::resources/pages/edit-record.notifications.saved.title'))
+            ->body(__('filament-document-builder::document-builder.messages.saved'))
+            ->success();
+    }
+
+    protected function resolveSampleRecord(DocumentTemplate $record): mixed
+    {
+        if (empty($record->model_class) || ! class_exists($record->model_class)) {
+            return new \stdClass;
+        }
+
+        $modelClass = $record->model_class;
+
+        if ($modelClass === 'Chanthoeun\FilamentCustomForms\Models\CustomFormEntry' && ! empty($record->type) && str_starts_with($record->type, 'custom_form_')) {
+            $formId = str_replace('custom_form_', '', $record->type);
+            $entry = $modelClass::where('custom_form_id', $formId)->latest()->first();
+            if ($entry) {
+                return $entry;
+            }
+        }
+
+        $sample = $modelClass::latest()->first();
+        if ($sample) {
+            return $sample;
+        }
+
+        return new $modelClass;
+    }
+
     protected function getHeaderActions(): array
     {
         return [
@@ -51,54 +83,67 @@ class EditDocumentTemplate extends EditRecord
                         ->send();
                 }),
             Action::make('preview_pdf')
-                ->label('Preview PDF')
+                ->label(__('filament-document-builder::document-builder.labels.preview_pdf'))
                 ->icon('heroicon-o-document-magnifying-glass')
                 ->color('success')
-                ->action(function () {
-                    /** @var DocumentTemplate $record */
-                    $record = $this->record;
-                    $record->fill($this->form->getState());
+                ->modalHeading(fn () => __('filament-document-builder::document-builder.labels.preview_pdf').': '.($this->getRecord()?->getAttribute('name') ?? ''))
+                ->modalWidth('7xl')
+                ->modalSubmitAction(false)
+                ->modalCancelActionLabel(__('filament-document-builder::document-builder.actions.close'))
+                ->extraModalFooterActions(fn (Action $action): array => [
+                    Action::make('download_pdf')
+                        ->label(__('filament-document-builder::document-builder.actions.download_pdf'))
+                        ->icon('heroicon-o-arrow-down-tray')
+                        ->color('primary')
+                        ->action(function () {
+                            /** @var DocumentTemplate|null $record */
+                            $record = $this->getRecord();
+                            if (! $record) {
+                                return null;
+                            }
+                            $record = clone $record;
+                            $record->fill($this->data);
+                            $sampleRecord = $this->resolveSampleRecord($record);
+                            $renderer = app(DocumentRenderer::class);
+                            $pdf = $renderer->render($record, $sampleRecord);
+
+                            return response()->streamDownload(function () use ($pdf) {
+                                echo $pdf->output();
+                            }, 'preview-'.Str::slug((string) $record->getAttribute('name')).'.pdf');
+                        }),
+                ])
+                ->modalContent(function () {
+                    /** @var DocumentTemplate|null $record */
+                    $record = $this->getRecord();
+                    if (! $record) {
+                        return null;
+                    }
+                    $record = clone $record;
+                    $record->fill($this->data);
 
                     if (empty($record->model_class)) {
-                        Notification::make()
-                            ->title('No Database Model Selected')
-                            ->body('You must select a Database Model in the Template Details and click Save before you can preview.')
-                            ->warning()
-                            ->send();
-
-                        return;
+                        return view('filament-document-builder::preview-pdf-modal', [
+                            'error' => __('filament-document-builder::document-builder.messages.no_model_selected'),
+                            'base64' => null,
+                        ]);
                     }
 
-                    $data = [];
-                    if (class_exists($record->model_class)) {
-                        $sampleRecord = $record->model_class::first();
-                        if ($sampleRecord) {
-                            $data = $sampleRecord;
-                        } else {
-                            Notification::make()
-                                ->title('No Records Found')
-                                ->body("There are no records in the {$record->model_class} table to preview with.")
-                                ->warning()
-                                ->send();
+                    try {
+                        $sampleRecord = $this->resolveSampleRecord($record);
+                        $renderer = app(DocumentRenderer::class);
+                        $pdf = $renderer->render($record, $sampleRecord);
+                        $base64 = base64_encode($pdf->output());
 
-                            return;
-                        }
-                    } else {
-                        Notification::make()
-                            ->title('Invalid Model')
-                            ->body("The model {$record->model_class} does not exist.")
-                            ->danger()
-                            ->send();
-
-                        return;
+                        return view('filament-document-builder::preview-pdf-modal', [
+                            'base64' => $base64,
+                            'error' => null,
+                        ]);
+                    } catch (\Throwable $e) {
+                        return view('filament-document-builder::preview-pdf-modal', [
+                            'error' => __('filament-document-builder::document-builder.messages.unable_to_generate_preview').': '.$e->getMessage(),
+                            'base64' => null,
+                        ]);
                     }
-
-                    $renderer = app(DocumentRenderer::class);
-                    $pdf = $renderer->render($record, $data);
-
-                    return response()->streamDownload(function () use ($pdf) {
-                        echo $pdf->output();
-                    }, 'preview-'.Str::slug((string) $record->getAttribute('name')).'.pdf');
                 }),
             Actions\DeleteAction::make(),
         ];

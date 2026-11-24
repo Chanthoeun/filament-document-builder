@@ -28,6 +28,15 @@ return [
         'no_model_linked' => 'គ្មានទិន្នន័យភ្ជាប់ទេ',
         'model_prefix' => 'ម៉ូដែល: ',
     ],
+    'actions' => [
+        'download_pdf' => 'ទាញយក PDF',
+        'close' => 'បិទ',
+    ],
+    'messages' => [
+        'saved' => 'បានរក្សាទុកទម្រង់ឯកសារដោយជោគជ័យ។',
+        'no_model_selected' => 'អ្នកត្រូវតែជ្រើសរើសទិន្នន័យនៅក្នុងព័ត៌មានលម្អិតនៃទម្រង់មុនពេលអ្នកអាចមើលជាមុនបាន។',
+        'unable_to_generate_preview' => 'មិនអាចបង្កើតការមើលជាមុនជា PDF បានទេ។',
+    ],
     'validation' => [
         'invalid_model' => 'តម្លៃដែលបានជ្រើសរើសមិនមែនជា Eloquent model class ត្រឹមត្រូវទេ។',
     ],
