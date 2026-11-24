@@ -348,9 +348,30 @@ class DocumentRenderer
         // Convert TinyMCE page breaks into mPDF's native <pagebreak /> tag.
         // TinyMCE stores them as HTML comments (<!-- pagebreak -->) by default, which mPDF ignores.
         // Also support placeholder images/HRs (e.g. content saved with the editor's default markup).
-        $htmlContent = preg_replace('/<!--\s*pagebreak\s*-->/i', '<pagebreak />', $htmlContent);
-        $htmlContent = preg_replace('/<img\b[^>]*\bclass=("|\')[^"\']*\bmce-pagebreak\b[^"\']*\1[^>]*>/i', '<pagebreak />', $htmlContent);
-        $htmlContent = preg_replace('/<hr\b[^>]*\bclass=("|\')[^"\']*\bmce-pagebreak\b[^"\']*\1[^>]*>/i', '<pagebreak />', $htmlContent);
+        $htmlContent = preg_replace('/<p\b[^>]*\bclass=([\'"])[^\'"]*\bmce-pagebreak\b[^\'"]*\1[^>]*>.*?<\/p>/is', '<pagebreak />', $htmlContent);
+        $htmlContent = preg_replace('/<div\b[^>]*\bclass=([\'"])[^\'"]*\bmce-pagebreak\b[^\'"]*\1[^>]*>.*?<\/div>/is', '<pagebreak />', $htmlContent);
+        $htmlContent = preg_replace('/<img\b[^>]*\bclass=([\'"])[^\'"]*\bmce-pagebreak\b[^\'"]*\1[^>]*>/is', '<pagebreak />', $htmlContent);
+        $htmlContent = preg_replace('/<hr\b[^>]*\bclass=([\'"])[^\'"]*\bmce-pagebreak\b[^\'"]*\1[^>]*>/is', '<pagebreak />', $htmlContent);
+
+        // Convert standard TinyMCE comments (both wrapped in <p>/<div> and bare)
+        $htmlContent = preg_replace('/<(?:p|div)[^>]*>\s*<!--\s*pagebreak\s*-->\s*<\/(?:p|div)>/is', '<pagebreak />', $htmlContent);
+        $htmlContent = preg_replace('/<!--\s*pagebreak\s*-->/is', '<pagebreak />', $htmlContent);
+
+        // Unwrap any remaining <pagebreak /> enclosed inside <p> or <div>
+        $htmlContent = preg_replace('/<(?:p|div)[^>]*>\s*(<pagebreak\s*\/?>)\s*<\/(?:p|div)>/is', '$1', $htmlContent);
+
+        // Strip empty paragraphs/lines immediately BEFORE <pagebreak /> (prevents accidental AutoPageBreak + forced break)
+        $emptyBlockPattern = '(?:<p[^>]*>(?:\s|&nbsp;|<br\s*\/?>)*<\/p>\s*)';
+        $htmlContent = preg_replace('/'.$emptyBlockPattern.'+<pagebreak\s*\/?>/is', '<pagebreak />', $htmlContent);
+
+        // Strip empty paragraphs/lines immediately AFTER <pagebreak /> (prevents unwanted top whitespace)
+        $htmlContent = preg_replace('/<pagebreak\s*\/?>\s*'.$emptyBlockPattern.'+/is', '<pagebreak />', $htmlContent);
+
+        // Deduplicate consecutive pagebreaks
+        $htmlContent = preg_replace('/(?:\s*<pagebreak\s*\/?>\s*){2,}/is', '<pagebreak />', $htmlContent);
+
+        // Remove trailing pagebreak at the end of the document
+        $htmlContent = preg_replace('/<pagebreak\s*\/?>\s*(?:'.$emptyBlockPattern.')*$/is', '', $htmlContent);
 
         // CSS flexbox polyfills for mPDF
         $htmlContent = preg_replace('/display:\s*inline-flex;?/', 'display: inline-block;', $htmlContent);

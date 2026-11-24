@@ -616,10 +616,50 @@ class DocumentRendererTest extends TestCase
     public function test_apply_mpdf_polyfills_converts_tinymce_pagebreak_comment_with_varying_whitespace(): void
     {
         $result = $this->callProtected('applyMpdfPolyfills', [
-            '<!--pagebreak--><!--  PAGEBREAK  -->',
+            '<p>Part 1</p><!--pagebreak--><p>Part 2</p><!--  PAGEBREAK  --><p>Part 3</p>',
         ]);
 
-        $this->assertEquals('<pagebreak /><pagebreak />', $result);
+        $this->assertStringContainsString('<pagebreak />', $result);
+        $this->assertEquals(2, substr_count($result, '<pagebreak />'));
+    }
+
+    public function test_apply_mpdf_polyfills_unwraps_paragraph_and_div_pagebreaks(): void
+    {
+        $result = $this->callProtected('applyMpdfPolyfills', [
+            '<p>Page 1</p><p><!-- pagebreak --></p><p>Page 2</p><div class="mce-pagebreak"><!-- pagebreak --></div><p>Page 3</p>',
+        ]);
+
+        $this->assertStringNotContainsString('<p><pagebreak /></p>', $result);
+        $this->assertStringNotContainsString('<p><!-- pagebreak --></p>', $result);
+        $this->assertStringNotContainsString('mce-pagebreak', $result);
+        $this->assertEquals('<p>Page 1</p><pagebreak /><p>Page 2</p><pagebreak /><p>Page 3</p>', $result);
+    }
+
+    public function test_apply_mpdf_polyfills_strips_empty_paragraphs_around_pagebreak(): void
+    {
+        $result = $this->callProtected('applyMpdfPolyfills', [
+            '<p>Page 1</p><p>&nbsp;</p><p><br></p><!-- pagebreak --><p>&nbsp;</p><p>Page 2</p>',
+        ]);
+
+        $this->assertEquals('<p>Page 1</p><pagebreak /><p>Page 2</p>', $result);
+    }
+
+    public function test_apply_mpdf_polyfills_deduplicates_consecutive_pagebreaks(): void
+    {
+        $result = $this->callProtected('applyMpdfPolyfills', [
+            '<p>Page 1</p><!-- pagebreak --><!-- pagebreak --><p>Page 2</p>',
+        ]);
+
+        $this->assertEquals('<p>Page 1</p><pagebreak /><p>Page 2</p>', $result);
+    }
+
+    public function test_apply_mpdf_polyfills_removes_trailing_pagebreak(): void
+    {
+        $result = $this->callProtected('applyMpdfPolyfills', [
+            '<p>Page 1</p><!-- pagebreak --><p>&nbsp;</p>',
+        ]);
+
+        $this->assertEquals('<p>Page 1</p>', $result);
     }
 
     public function test_apply_mpdf_polyfills_converts_tinymce_pagebreak_placeholder_image(): void

@@ -235,6 +235,8 @@ class DocumentTemplateForm
                                         'min_height' => ceil($minHeight * 3.7795275591) + 40, // Convert mm to px and add some padding
                                         'plugins' => 'custom_shapes accordion autoresize codesample directionality advlist autolink link image lists charmap anchor pagebreak searchreplace wordcount visualblocks visualchars code fullscreen insertdatetime media table emoticons template help',
                                         'toolbar' => 'undo redo removeformat | fontfamily fontsize fontsizeinput font_size_formats styles | bold italic underline | rtl ltr | alignjustify alignright aligncenter alignleft | numlist bullist outdent indent accordion | forecolor backcolor | blockquote table toc hr | image link anchor media codesample emoticons template insert_variable insert_qrcode insert_barcode | visualblocks print wordcount fullscreen help',
+                                        'pagebreak_split_block' => true,
+                                        'pagebreak_separator' => '<!-- pagebreak -->',
                                         'templates' => config('filament-document-builder.templates', []),
                                         'text_patterns' => [
                                             ['start' => '#logo', 'replacement' => '<div style="display: inline-block; width: 80px; height: 80px; border: 1px solid #000; border-radius: 50%; text-align: center; line-height: 80px;">LOGO</div>'],
