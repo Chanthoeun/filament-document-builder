@@ -29,6 +29,14 @@ class EditDocumentTemplate extends EditRecord
             ->success();
     }
 
+    private function renderPreviewModal(array $data): \Illuminate\Contracts\View\View
+    {
+        /** @var view-string $view */
+        $view = 'filament-document-builder::preview-pdf-modal';
+
+        return View::make($view, $data);
+    }
+
     protected function resolveSampleRecord(DocumentTemplate $record): mixed
     {
         $modelClass = $record->getAttribute('model_class');
@@ -117,7 +125,7 @@ class EditDocumentTemplate extends EditRecord
                     $record->fill($this->data);
 
                     if (empty($record->model_class)) {
-                        return View::make('filament-document-builder::preview-pdf-modal', [
+                        return $this->renderPreviewModal([
                             'error' => __('filament-document-builder::document-builder.messages.no_model_selected'),
                             'base64' => null,
                         ]);
@@ -129,12 +137,12 @@ class EditDocumentTemplate extends EditRecord
                         $pdf = $renderer->render($record, $sampleRecord);
                         $base64 = base64_encode($pdf->output());
 
-                        return View::make('filament-document-builder::preview-pdf-modal', [
+                        return $this->renderPreviewModal([
                             'base64' => $base64,
                             'error' => null,
                         ]);
                     } catch (\Throwable $e) {
-                        return View::make('filament-document-builder::preview-pdf-modal', [
+                        return $this->renderPreviewModal([
                             'error' => __('filament-document-builder::document-builder.messages.unable_to_generate_preview').': '.$e->getMessage(),
                             'base64' => null,
                         ]);
