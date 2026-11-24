@@ -140,6 +140,8 @@ class DocumentTemplateForm
                                 ->fileAttachmentsDirectory('document-templates')
                                 ->profile('full')
                                 ->showMenuBar()
+                                ->toolbarSticky(false)
+                                ->toolbarMode('wrap')
                                 ->setCustomConfigs(function (Get $get) {
                                     $vars = [];
                                     $modelClass = $get('model_class');
@@ -230,6 +232,8 @@ class DocumentTemplateForm
 
                                     return [
                                         'ui_mode' => 'combined',
+                                        'toolbar_sticky' => false,
+                                        'toolbar_mode' => 'wrap',
                                         'license_key' => 'gpl',
                                         'document_variables' => $vars,
                                         'menubar' => 'file edit view insert format tools table help',
