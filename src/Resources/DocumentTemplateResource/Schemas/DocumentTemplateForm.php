@@ -139,6 +139,7 @@ class DocumentTemplateForm
                                 ->fileAttachmentsDisk('public')
                                 ->fileAttachmentsDirectory('document-templates')
                                 ->profile('full')
+                                ->showMenuBar()
                                 ->setCustomConfigs(function (Get $get) {
                                     $vars = [];
                                     $modelClass = $get('model_class');
@@ -228,13 +229,15 @@ class DocumentTemplateForm
                                         'p { margin-top: 0 !important; }';
 
                                     return [
+                                        'ui_mode' => 'combined',
+                                        'license_key' => 'gpl',
                                         'document_variables' => $vars,
                                         'menubar' => 'file edit view insert format tools table help',
                                         'font_family_formats' => 'Arial=arial,helvetica,sans-serif; Calibri=calibri,sans-serif; Times New Roman="times new roman",times,serif; Khmer Battambang=Battambang,sans-serif; Khmer Moul="Khmer OS Muol Light",Moul,cursive; Khmer Siemreap=Siemreap,sans-serif;',
                                         'content_style' => $contentStyle,
                                         'min_height' => ceil($minHeight * 3.7795275591) + 40, // Convert mm to px and add some padding
-                                        'plugins' => 'custom_shapes accordion autoresize codesample directionality advlist autolink link image lists charmap anchor pagebreak searchreplace wordcount visualblocks visualchars code fullscreen insertdatetime media table emoticons template help',
-                                        'toolbar' => 'undo redo removeformat | fontfamily fontsize fontsizeinput font_size_formats styles | bold italic underline | rtl ltr | alignjustify alignright aligncenter alignleft | numlist bullist outdent indent accordion | forecolor backcolor | blockquote table toc hr | image link anchor media codesample emoticons template insert_variable insert_qrcode insert_barcode | visualblocks print wordcount fullscreen help',
+                                        'plugins' => 'custom_shapes accordion autoresize codesample directionality advlist autolink link image lists charmap anchor pagebreak searchreplace wordcount visualblocks visualchars code fullscreen insertdatetime media table emoticons help',
+                                        'toolbar' => 'undo redo removeformat | fontfamily fontsize fontsizeinput font_size_formats styles | bold italic underline | rtl ltr | alignjustify alignright aligncenter alignleft | numlist bullist outdent indent accordion | forecolor backcolor | blockquote table hr | image link anchor media codesample emoticons document_templates_btn insert_variable insert_qrcode insert_barcode | visualblocks wordcount fullscreen help',
                                         'pagebreak_split_block' => true,
                                         'pagebreak_separator' => '<!-- pagebreak -->',
                                         'templates' => config('filament-document-builder.templates', []),
