@@ -462,6 +462,7 @@ class DocumentRenderer
 
                 if (preg_match('/^<br\b[^>]*\/?>/i', $html, $match)) {
                     $html = substr($html, strlen($match[0]));
+
                     continue;
                 }
 
@@ -470,6 +471,7 @@ class DocumentRenderer
                     $end = $this->findMatchingTagEnd($html, $tag, strlen($match[0]));
                     if ($end !== null && $this->isEmptyHtmlFragment(substr($html, 0, $end))) {
                         $html = substr($html, $end);
+
                         continue;
                     }
                 }
@@ -481,6 +483,7 @@ class DocumentRenderer
 
                 if (preg_match('/<br\b[^>]*\/?>$/i', $html, $match)) {
                     $html = substr($html, 0, -strlen($match[0]));
+
                     continue;
                 }
 
@@ -489,6 +492,7 @@ class DocumentRenderer
                     $start = $this->findMatchingTagStart($html, $tag, $match[0][1]);
                     if ($start !== null && $this->isEmptyHtmlFragment(substr($html, $start))) {
                         $html = substr($html, 0, $start);
+
                         continue;
                     }
                 }
@@ -575,6 +579,7 @@ class DocumentRenderer
                 foreach ($parts as $part) {
                     if ($this->isPageBreakTag($part)) {
                         $output .= $part;
+
                         continue;
                     }
 
