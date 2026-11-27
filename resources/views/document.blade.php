@@ -12,6 +12,9 @@
             font-size: 14px;
             line-height: 1.5;
         }
+        p {
+            margin-top: 0;
+        }
         .document-container {
             width: 100%;
         }

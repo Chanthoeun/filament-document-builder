@@ -244,6 +244,8 @@ class DocumentTemplateForm
                                         'toolbar' => 'undo redo removeformat | fontfamily fontsize fontsizeinput font_size_formats styles | bold italic underline | rtl ltr | alignjustify alignright aligncenter alignleft | numlist bullist outdent indent accordion | forecolor backcolor | blockquote table hr | image link anchor media codesample emoticons document_templates_btn insert_variable insert_qrcode insert_barcode | visualblocks wordcount fullscreen help',
                                         'pagebreak_split_block' => true,
                                         'pagebreak_separator' => '<!-- pagebreak -->',
+                                        'relative_urls' => false,
+                                        'remove_script_host' => true,
                                         'templates' => config('filament-document-builder.templates', []),
                                         'text_patterns' => [
                                             ['start' => '#logo', 'replacement' => '<div style="display: inline-block; width: 80px; height: 80px; border: 1px solid #000; border-radius: 50%; text-align: center; line-height: 80px;">LOGO</div>'],

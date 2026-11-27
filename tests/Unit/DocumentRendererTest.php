@@ -5,6 +5,8 @@ namespace Chanthoeun\FilamentDocumentBuilder\Tests\Unit;
 use Chanthoeun\FilamentDocumentBuilder\Models\DocumentTemplate;
 use Chanthoeun\FilamentDocumentBuilder\Services\DocumentRenderer;
 use Chanthoeun\FilamentDocumentBuilder\Tests\TestCase;
+use Illuminate\Support\Facades\Storage;
+use Mccarlosen\LaravelMpdf\LaravelMpdfServiceProvider;
 use Mockery;
 use SimpleSoftwareIO\QrCode\Generator;
 
@@ -696,5 +698,178 @@ class DocumentRendererTest extends TestCase
         $this->assertStringContainsString('<p>Title</p>', $result);
         $this->assertStringContainsString('<pagebreak />', $result);
         $this->assertStringContainsString('<p>Body</p>', $result);
+    }
+
+    public function test_apply_mpdf_polyfills_strips_styled_and_nested_empty_blocks_around_pagebreak(): void
+    {
+        $result = $this->callProtected('applyMpdfPolyfills', [
+            '<p>Page 1</p><p><span style="font-family: Battambang;">&nbsp;</span></p><p><strong><br data-mce-bogus="1" /></strong></p><div><div>&nbsp;</div></div><!-- pagebreak --><div><br /></div><p><span>&nbsp;</span></p><p>Page 2</p>',
+        ]);
+
+        $this->assertEquals('<p>Page 1</p><pagebreak /><p>Page 2</p>', $result);
+    }
+
+    public function test_apply_mpdf_polyfills_strips_zwsp_and_nbsp_only_blocks_around_pagebreak(): void
+    {
+        $result = $this->callProtected('applyMpdfPolyfills', [
+            "<p>Page 1</p><p>\xE2\x80\x8B</p><p>&#8203;</p><p><wbr /></p><!-- pagebreak --><p>\xC2\xA0</p><p>&#160;</p><p>Page 2</p>",
+        ]);
+
+        $this->assertEquals('<p>Page 1</p><pagebreak /><p>Page 2</p>', $result);
+    }
+
+    public function test_apply_mpdf_polyfills_unwraps_inline_and_text_containing_pagebreak_paragraphs(): void
+    {
+        $result = $this->callProtected('applyMpdfPolyfills', [
+            '<p style="text-align:center;">Page 1<br /><!-- pagebreak --></p><p>&nbsp;<!-- pagebreak --></p><p><span><!-- pagebreak --></span></p><p><!-- pagebreak --><br />Page 2</p>',
+        ]);
+
+        $this->assertEquals('<p style="text-align:center;">Page 1</p><pagebreak /><p>Page 2</p>', $result);
+    }
+
+    public function test_apply_mpdf_polyfills_removes_leading_and_empty_separated_duplicate_pagebreaks(): void
+    {
+        $result = $this->callProtected('applyMpdfPolyfills', [
+            '<!-- pagebreak --><p><span>&nbsp;</span></p><!-- pagebreak --><p>Page 1</p><!-- pagebreak --><p><span>&nbsp;</span></p><!-- pagebreak --><p>Page 2</p>',
+        ]);
+
+        $this->assertEquals('<p>Page 1</p><pagebreak /><p>Page 2</p>', $result);
+    }
+
+    public function test_apply_mpdf_polyfills_preserves_visual_boxes_and_closing_wrappers_around_pagebreak(): void
+    {
+        $checkbox = '<div style="display: inline-block; width: 16px; height: 16px; border: 1px solid #000;"></div>';
+        $withCheckbox = $this->callProtected('applyMpdfPolyfills', [
+            $checkbox.'<!-- pagebreak --><p>Page 2</p>',
+        ]);
+
+        $this->assertEquals(
+            '<div style="display: inline-block; width: 16px; height: 16px; border: 1px solid #000; line-height: 16px;"></div><pagebreak /><p>Page 2</p>',
+            $withCheckbox
+        );
+
+        $wrappedTrailing = $this->callProtected('applyMpdfPolyfills', [
+            '<div><p>Page 1</p><!-- pagebreak --></div>',
+        ]);
+
+        $this->assertEquals('<div><p>Page 1</p></div>', $wrappedTrailing);
+    }
+
+    public function test_apply_mpdf_polyfills_strips_trailing_empty_blocks_without_pagebreak(): void
+    {
+        $result = $this->callProtected('applyMpdfPolyfills', [
+            '<p>Page 1</p><p><span style="font-family: Battambang;">&nbsp;</span></p><p><br /></p>',
+        ]);
+
+        $this->assertEquals('<p>Page 1</p>', $result);
+    }
+
+    public function test_render_does_not_produce_blank_page_near_bottom_with_styled_empty_blocks_or_wrapper_padding(): void
+    {
+        $this->app->register(LaravelMpdfServiceProvider::class);
+
+        $template = $this->makeTemplate([
+            'content' => '<div style="padding-bottom: 20px;"><div style="height:262mm;">Page 1</div><p><span style="font-family: Battambang;">&nbsp;</span></p><!-- pagebreak --><p>Page 2</p></div>',
+        ]);
+        $template->setAttribute('page_settings', [
+            'format' => 'a4',
+            'orientation' => 'portrait',
+            'margin_top' => 16,
+            'margin_bottom' => 16,
+            'margin_left' => 15,
+            'margin_right' => 15,
+            'temp_dir' => sys_get_temp_dir(),
+        ]);
+
+        $pdf = $this->renderer->render($template, []);
+
+        $this->assertCount(2, $pdf->getMpdf()->pages);
+    }
+
+    public function test_render_multiple_strips_trailing_empty_blocks_between_records(): void
+    {
+        $this->app->register(LaravelMpdfServiceProvider::class);
+
+        $template = $this->makeTemplate([
+            'content' => '<div style="height:262mm;">{{ name }}</div><p><span style="font-family: Battambang;">&nbsp;</span></p>',
+        ]);
+        $template->setAttribute('page_settings', [
+            'format' => 'a4',
+            'orientation' => 'portrait',
+            'margin_top' => 16,
+            'margin_bottom' => 16,
+            'margin_left' => 15,
+            'margin_right' => 15,
+            'temp_dir' => sys_get_temp_dir(),
+        ]);
+
+        $pdf = $this->renderer->renderMultiple($template, [
+            ['name' => 'Record 1'],
+            ['name' => 'Record 2'],
+        ]);
+
+        $this->assertCount(2, $pdf->getMpdf()->pages);
+    }
+
+    public function test_apply_mpdf_polyfills_rewrites_relative_encoded_and_scheme_mismatched_storage_urls(): void
+    {
+        config(['app.url' => 'http://ams.datacolabx.com']);
+
+        $relative = $this->callProtected('applyMpdfPolyfills', [
+            '<img src="../../storage/document-templates/my%20logo.png?v=2" data-mce-src="/storage/ignored.png" width="80">',
+        ]);
+
+        $this->assertStringContainsString('src="'.public_path('storage/document-templates/my logo.png').'"', $relative);
+        $this->assertStringContainsString('data-mce-src="/storage/ignored.png"', $relative);
+
+        $schemeMismatch = $this->callProtected('applyMpdfPolyfills', [
+            '<img src="https://ams.datacolabx.com/storage/uploads/logo.png">',
+        ]);
+
+        $this->assertStringContainsString('src="'.public_path('storage/uploads/logo.png').'"', $schemeMismatch);
+
+        $external = $this->callProtected('applyMpdfPolyfills', [
+            '<img src="https://cdn.example.com/storage/remote-logo.png">',
+        ]);
+
+        $this->assertEquals('<img src="https://cdn.example.com/storage/remote-logo.png">', $external);
+    }
+
+    public function test_render_embeds_logo_on_first_page_and_image_on_second_page(): void
+    {
+        $this->app->register(LaravelMpdfServiceProvider::class);
+        Storage::fake('public');
+        config(['app.url' => 'http://localhost']);
+
+        $image = imagecreatetruecolor(40, 40);
+        $this->assertNotFalse($image);
+        ob_start();
+        imagepng($image);
+        $pngBytes = (string) ob_get_clean();
+
+        Storage::disk('public')->put('document-templates/school logo.png', $pngBytes);
+        Storage::disk('public')->put('students/photo-591.png', $pngBytes);
+
+        $template = $this->makeTemplate([
+            'content' => '<table><tr><td><img src="https://ams.datacolabx.com/storage/document-templates/school%20logo.png?v=1" width="40" height="40"></td><td>Header</td></tr></table><!-- pagebreak --><p><img src="{{ data.photo }}" width="40" height="40"></p><p><img src="/storage/{{ data.existing_url }}" width="40" height="40"></p>',
+        ]);
+        $template->setAttribute('page_settings', [
+            'format' => 'a4',
+            'orientation' => 'portrait',
+            'temp_dir' => sys_get_temp_dir(),
+        ]);
+
+        $pdf = $this->renderer->render($template, [
+            'data' => [
+                'photo' => 'students/photo-591.png',
+                'existing_url' => '/storage/students/photo-591.png',
+            ],
+        ]);
+
+        $mpdf = $pdf->getMpdf();
+        $this->assertCount(2, $mpdf->pages);
+        $this->assertCount(2, $mpdf->images);
+        $this->assertMatchesRegularExpression('/\/I\d+\s+Do/', $mpdf->pages[1]);
+        $this->assertMatchesRegularExpression('/\/I\d+\s+Do/', $mpdf->pages[2]);
     }
 }
